@@ -41,7 +41,11 @@
     "start": "electron .",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "electron-rebuild": "electron-rebuild",
-    "postinstall": "electron-rebuild"
+    "postinstall": "electron-rebuild",
+    "prerelease": "node scripts/validate-release.js",
+    "release": "node scripts/create-release.js",
+    "release:draft": "node scripts/create-release.js --draft",
+    "release:check": "node scripts/validate-release.js"
   },
   "dependencies": {
     "@azure/msal-browser": "^4.15.0",
