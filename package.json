@@ -122,7 +122,8 @@
         }
       ],
       "icon": "public/icon.ico",
-      "signAndEditExecutable": false
+      "signAndEditExecutable": false,
+      "verifyUpdateCodeSignature": false
     },
     "nsis": {
       "oneClick": false,
@@ -130,7 +131,9 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Openza",
-      "artifactName": "Openza-Setup-${version}.${ext}"
+      "artifactName": "Openza-Setup-${version}.${ext}",
+      "installerIcon": "public/icon.ico",
+      "uninstallerIcon": "public/icon.ico"
     },
     "portable": {
       "artifactName": "Openza-Portable.exe"
