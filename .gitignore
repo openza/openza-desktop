@@ -48,3 +48,6 @@ secrets.json
 
 # Product planning (not tracked in git)
 Product Roadmap/
+
+# GitHub Pages organization site (moved to sibling repo)
+github-pages-org/

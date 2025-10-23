@@ -41,10 +41,10 @@ Project Site (openza.github.io/openza-desktop)
 
 #### Step 2: Push the Organization Site Files
 
-Navigate to the `github-pages-org` folder in your terminal:
+Navigate to the `openza.github.io` folder in your terminal:
 
 ```bash
-cd github-pages-org
+cd openza.github.io
 
 # Initialize git
 git init
@@ -186,7 +186,8 @@ git push
 
 ### Organization Site
 
-**File**: `github-pages-org/index.html`
+**Repository**: `openza.github.io` (sibling of openza-desktop)
+**File**: `index.html`
 
 **Common Updates:**
 - Add new projects in the "Projects" section
