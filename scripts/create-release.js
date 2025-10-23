@@ -127,13 +127,43 @@ const releaseNotesPath = path.join(projectRoot, 'RELEASE_NOTES.md');
 fs.writeFileSync(releaseNotesPath, releaseNotes, 'utf-8');
 info(`Release notes saved to: RELEASE_NOTES.md`);
 
-// Create git tag
-info(`Creating git tag: ${releaseTag}`);
+// Create git tag (or use existing)
+info(`Checking git tag: ${releaseTag}`);
+let tagExists = false;
 try {
-  execSync(`git tag -a ${releaseTag} -m "Release ${releaseTag}"`, { cwd: projectRoot });
-  success(`Git tag created: ${releaseTag}`);
+  execSync(`git rev-parse ${releaseTag}`, { cwd: projectRoot, stdio: 'pipe' });
+  tagExists = true;
+  success(`Git tag ${releaseTag} already exists locally`);
 } catch (err) {
-  error(`Failed to create git tag. Tag ${releaseTag} may already exist.`);
+  // Tag doesn't exist, create it
+  info(`Creating git tag: ${releaseTag}`);
+  try {
+    execSync(`git tag -a ${releaseTag} -m "Release ${releaseTag}"`, { cwd: projectRoot });
+    success(`Git tag created: ${releaseTag}`);
+  } catch (err) {
+    error(`Failed to create git tag`);
+    process.exit(1);
+  }
+}
+
+// Push tag to remote
+info(`Pushing tag to remote: ${releaseTag}`);
+try {
+  execSync(`git push origin ${releaseTag}`, { cwd: projectRoot, stdio: 'inherit' });
+  success(`Tag pushed to remote`);
+} catch (err) {
+  error(`Failed to push tag to remote`);
+  error('Make sure you have permission to push to the repository');
+
+  // Clean up local tag if we just created it and push failed
+  if (!tagExists) {
+    info('Cleaning up local tag...');
+    try {
+      execSync(`git tag -d ${releaseTag}`, { cwd: projectRoot });
+    } catch {
+      // Ignore
+    }
+  }
   process.exit(1);
 }
 
@@ -191,9 +221,11 @@ try {
     log('');
 
     info('Next steps:');
-    info('  1. Push the tag: git push origin ' + releaseTag);
-    info('  2. Announce the release');
-    info('  3. Update documentation if needed');
+    info('  1. Announce the release');
+    info('  2. Update documentation if needed');
+    if (isDraft) {
+      info('  3. Review and publish the draft release on GitHub');
+    }
     log('');
   } catch {
     // Could not get release URL, but release was created
