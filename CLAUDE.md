@@ -2,6 +2,135 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Open Source Project Guidelines
+
+**IMPORTANT**: This is an open source project licensed under MIT. All contributions must adhere to open source best practices and security standards.
+
+### Security Considerations (CRITICAL)
+
+**NEVER commit or push:**
+- API keys, tokens, or credentials (check `.env.local`, hardcoded secrets)
+- Personal access tokens or OAuth secrets
+- Private keys, certificates, or encryption keys
+- User data, email addresses, or personally identifiable information (PII)
+- Proprietary third-party code or dependencies
+- Database files with sensitive data (`*.db`, `*.sqlite`)
+- Environment files (`.env`, `.env.local`, `.env.production`)
+
+**Always verify before committing:**
+- Search codebase for patterns: `VITE_.*SECRET`, `password`, `token`, `api_key`, `private_key`
+- Check git diff for sensitive data: `git diff --cached`
+- Ensure `.gitignore` includes: `.env*`, `*.db`, `*.sqlite`, `*.log`, `credentials.json`
+- Review all changed files for accidental inclusions
+- If secrets were committed, they must be rotated (changing them isn't enough - they're in git history)
+
+### Pre-Commit Checklist
+
+Before committing or pushing code, **ALWAYS verify**:
+
+**Security & Privacy:**
+- [ ] No API keys, secrets, or credentials in code
+- [ ] No user data or PII included
+- [ ] `.env.local` and sensitive files in `.gitignore`
+- [ ] Dependencies are from trusted sources only
+
+**Code Quality:**
+- [ ] Code passes linting: `npm run lint`
+- [ ] TypeScript compiles without errors: `npm run build`
+- [ ] No console.log statements in production code (use proper logging)
+- [ ] No commented-out code blocks (remove or document why)
+- [ ] Follow existing code style and patterns
+
+**Testing & Functionality:**
+- [ ] Code has been tested locally: `npm run dev:electron`
+- [ ] New features work as expected
+- [ ] No breaking changes to existing functionality
+- [ ] Error handling implemented for new code
+
+**Documentation:**
+- [ ] Comments added for complex logic
+- [ ] README.md updated if user-facing changes
+- [ ] CLAUDE.md updated if architecture changes
+- [ ] TypeScript types documented for new APIs
+
+**Open Source Best Practices:**
+- [ ] Code follows MIT license requirements
+- [ ] No proprietary or copyrighted code included
+- [ ] Attribution provided for third-party code snippets
+- [ ] Dependencies added to package.json with proper licenses
+
+### Commit Message Standards
+
+Follow conventional commit format:
+```
+<type>: <subject>
+
+<body (optional)>
+
+<footer (optional)>
+```
+
+**Types:**
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation changes
+- `style`: Code style changes (formatting, no logic change)
+- `refactor`: Code refactoring (no feature/bug change)
+- `perf`: Performance improvements
+- `test`: Adding or updating tests
+- `chore`: Build process, dependencies, tooling
+
+**Examples:**
+```bash
+feat: Add dark mode support to settings panel
+fix: Resolve OAuth callback timeout on Windows
+docs: Update README with new installation steps
+refactor: Extract authentication logic to separate module
+```
+
+### Pull Request Guidelines
+
+**Before creating a PR:**
+- [ ] Branch name is descriptive: `feat/feature-name`, `fix/bug-name`
+- [ ] All commits follow commit message standards
+- [ ] Code is rebased on latest main branch
+- [ ] All pre-commit checklist items verified
+- [ ] PR description includes summary and test plan
+
+**PR Description Template:**
+```markdown
+## Summary
+- Brief description of changes
+- Why these changes are needed
+
+## Changes
+- List of specific changes made
+- Files affected and why
+
+## Testing
+- [ ] Tested in development mode
+- [ ] Tested production build
+- [ ] Tested on target platforms
+
+## Screenshots (if UI changes)
+[Add screenshots here]
+```
+
+### Dependency Management
+
+**Before adding new dependencies:**
+- [ ] Check npm package legitimacy and downloads
+- [ ] Review package license (must be compatible with MIT)
+- [ ] Check for known vulnerabilities: `npm audit`
+- [ ] Verify package is actively maintained
+- [ ] Consider bundle size impact
+- [ ] Evaluate if really necessary (avoid dependency bloat)
+
+**After adding dependencies:**
+- [ ] Run `npm audit` and address critical/high vulnerabilities
+- [ ] Update `package-lock.json` (commit it)
+- [ ] Document why dependency was added (in PR or code comments)
+
 ## Development Commands
 
 ```bash
@@ -151,3 +280,22 @@ Copy `.env.example` to `.env.local` and configure:
 ## Claude Code Configuration
 
 The project has a `.claude/settings.json` file that configures Claude Code behavior, including disabling attribution in commits and pull requests.
+
+**When using Claude Code, ALWAYS:**
+- Follow the "Open Source Project Guidelines" section above
+- Run security checks before committing (search for secrets, check `.gitignore`)
+- Verify pre-commit checklist items before creating commits
+- Use conventional commit message format
+- Test code locally before pushing
+- Never commit sensitive data, API keys, or credentials
+- Ensure all dependencies are properly licensed and documented
+- Follow the PR guidelines when creating pull requests
+
+**Security Reminder for Claude Code:**
+Before any `git add`, `git commit`, or `git push` operations, Claude Code must verify:
+1. No secrets or credentials in staged files
+2. All security checklist items above are satisfied
+3. Code quality standards are met
+4. Dependencies are properly audited
+
+This is an open source project - once code is pushed, it's public forever. Security and quality are paramount.
