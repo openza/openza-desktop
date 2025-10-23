@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Openza Desktop - Documentation for the modern task management desktop application">
+    <title>Openza Desktop - Documentation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .prose { max-width: 65ch; }
+        .prose h2 { margin-top: 2rem; margin-bottom: 1rem; }
+        .prose h3 { margin-top: 1.5rem; margin-bottom: 0.75rem; }
+        .prose code { background-color: #f3f4f6; padding: 0.125rem 0.25rem; border-radius: 0.25rem; font-size: 0.875em; }
+        .prose pre { background-color: #1f2937; color: #f9fafb; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; }
+        .prose pre code { background-color: transparent; padding: 0; }
+        .sidebar-link { transition: all 0.2s; }
+        .sidebar-link:hover { background-color: #f3f4f6; }
+        .sidebar-link.active { background-color: #eef2ff; color: #4f46e5; font-weight: 600; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <a href="https://openza.github.io" class="flex items-center space-x-2 hover:opacity-80 transition">
+                        <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                        </svg>
+                        <span class="text-lg font-bold text-gray-900">Openza</span>
+                    </a>
+                    <span class="text-gray-400">/</span>
+                    <span class="text-lg font-semibold text-indigo-600">Desktop Documentation</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="https://github.com/openza/openza-desktop" target="_blank" class="text-gray-600 hover:text-gray-900 transition">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex container mx-auto">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white border-r border-gray-200 min-h-screen sticky top-16 self-start hidden lg:block">
+            <nav class="p-6">
+                <div class="space-y-1">
+                    <a href="#introduction" class="sidebar-link block px-3 py-2 rounded text-sm">Introduction</a>
+                    <a href="#features" class="sidebar-link block px-3 py-2 rounded text-sm">Features</a>
+                    <a href="#installation" class="sidebar-link block px-3 py-2 rounded text-sm">Installation</a>
+                    <a href="#quick-start" class="sidebar-link block px-3 py-2 rounded text-sm">Quick Start</a>
+                    <a href="#configuration" class="sidebar-link block px-3 py-2 rounded text-sm">Configuration</a>
+                    <div class="pt-4 pb-2">
+                        <h4 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Integrations</h4>
+                    </div>
+                    <a href="#todoist" class="sidebar-link block px-3 py-2 rounded text-sm">Todoist Setup</a>
+                    <a href="#microsoft-todo" class="sidebar-link block px-3 py-2 rounded text-sm">Microsoft To-Do Setup</a>
+                    <a href="#local-database" class="sidebar-link block px-3 py-2 rounded text-sm">Local Database</a>
+                    <div class="pt-4 pb-2">
+                        <h4 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Development</h4>
+                    </div>
+                    <a href="#development" class="sidebar-link block px-3 py-2 rounded text-sm">Development Guide</a>
+                    <a href="#architecture" class="sidebar-link block px-3 py-2 rounded text-sm">Architecture</a>
+                    <a href="#contributing" class="sidebar-link block px-3 py-2 rounded text-sm">Contributing</a>
+                    <a href="#security" class="sidebar-link block px-3 py-2 rounded text-sm">Security</a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 px-6 py-12 max-w-4xl">
+            <!-- Introduction -->
+            <section id="introduction" class="mb-16">
+                <h1 class="text-4xl font-bold mb-4">Openza Desktop Documentation</h1>
+                <p class="text-xl text-gray-600 mb-6">
+                    A modern, beautiful desktop client for managing tasks from multiple sources including Todoist and Microsoft To-Do.
+                </p>
+                <div class="flex gap-4 mb-8">
+                    <a href="https://github.com/openza/openza-desktop/releases" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition font-medium">
+                        Download Latest Release
+                    </a>
+                    <a href="https://github.com/openza/openza-desktop" class="bg-white text-indigo-600 px-6 py-2 rounded-lg border-2 border-indigo-600 hover:bg-indigo-50 transition font-medium">
+                        View on GitHub
+                    </a>
+                </div>
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+                    <p class="text-sm text-blue-900">
+                        <strong>Version:</strong> 0.1.0 | <strong>Platform:</strong> Windows, Linux | <strong>License:</strong> MIT
+                    </p>
+                </div>
+            </section>
+
+            <!-- Features -->
+            <section id="features" class="mb-16">
+                <h2 class="text-3xl font-bold mb-4">Features</h2>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <h3 class="font-bold mb-2">🎯 Multi-Provider Support</h3>
+                        <p class="text-sm text-gray-600">Connect Todoist, Microsoft To-Do, and use local database for offline tasks.</p>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <h3 class="font-bold mb-2">🔐 Secure Authentication</h3>
+                        <p class="text-sm text-gray-600">OAuth 2.0 with encrypted token storage in Electron's secure storage.</p>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <h3 class="font-bold mb-2">📱 Modern UI</h3>
+                        <p class="text-sm text-gray-600">Clean interface with Tailwind CSS 4.x and Shadcn/ui components.</p>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <h3 class="font-bold mb-2">🚀 Native Performance</h3>
+                        <p class="text-sm text-gray-600">Built with Electron 36 for true desktop experience.</p>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <h3 class="font-bold mb-2">🔄 Real-time Sync</h3>
+                        <p class="text-sm text-gray-600">Automatic synchronization with your task providers using TanStack Query.</p>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <h3 class="font-bold mb-2">📊 Unified Dashboard</h3>
+                        <p class="text-sm text-gray-600">View all tasks from multiple sources in one place with smart filtering.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Installation -->
+            <section id="installation" class="mb-16">
+                <h2 class="text-3xl font-bold mb-4">Installation</h2>
+
+                <h3 class="text-2xl font-bold mb-3">Pre-built Binaries</h3>
+                <p class="mb-4 text-gray-600">Download the latest release from GitHub:</p>
+                <div class="bg-gray-100 rounded-lg p-4 mb-6">
+                    <ul class="space-y-2">
+                        <li><strong>Windows:</strong> <code>Openza-Setup-{version}.exe</code> (installer) or <code>Openza-Portable.exe</code></li>
+                        <li><strong>Linux:</strong> <code>Openza_{version}_amd64.deb</code> or <code>Openza-{version}.AppImage</code></li>
+                    </ul>
+                </div>
+
+                <h3 class="text-2xl font-bold mb-3">Build from Source</h3>
+                <p class="mb-4 text-gray-600">Requirements: Node.js 18+ and npm</p>
+                <div class="bg-gray-900 text-white rounded-lg p-4 mb-4">
+                    <pre><code># Clone the repository
+git clone https://github.com/openza/openza-desktop.git
+cd openza-desktop
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev:electron</code></pre>
+                </div>
+            </section>
+
+            <!-- Quick Start -->
+            <section id="quick-start" class="mb-16">
+                <h2 class="text-3xl font-bold mb-4">Quick Start</h2>
+                <ol class="space-y-4">
+                    <li class="flex items-start">
+                        <span class="flex-shrink-0 w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold mr-3">1</span>
+                        <div>
+                            <h3 class="font-bold mb-1">Launch Openza Desktop</h3>
+                            <p class="text-gray-600">Open the application after installation.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="flex-shrink-0 w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold mr-3">2</span>
+                        <div>
+                            <h3 class="font-bold mb-1">Connect Your Task Provider</h3>
+                            <p class="text-gray-600">Click "Sign in with Todoist" or "Sign in with Microsoft" on the login page.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="flex-shrink-0 w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold mr-3">3</span>
+                        <div>
+                            <h3 class="font-bold mb-1">Authorize Access</h3>
+                            <p class="text-gray-600">Complete the OAuth flow in your browser and return to the app.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="flex-shrink-0 w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold mr-3">4</span>
+                        <div>
+                            <h3 class="font-bold mb-1">Start Managing Tasks</h3>
+                            <p class="text-gray-600">View your tasks in the dashboard, organized by provider, project, and due date.</p>
+                        </div>
+                    </li>
+                </ol>
+            </section>
+
+            <!-- Configuration -->
+            <section id="configuration" class="mb-16">
+                <h2 class="text-3xl font-bold mb-4">Configuration</h2>
+                <p class="mb-4 text-gray-600">For development or custom deployments, configure environment variables in <code>.env.local</code>:</p>
+                <div class="bg-gray-900 text-white rounded-lg p-4 mb-4">
+                    <pre><code># Todoist Configuration
+VITE_TODOIST_CLIENT_ID=your_todoist_client_id
+VITE_TODOIST_CLIENT_SECRET=your_todoist_client_secret
+VITE_REDIRECT_URI=http://localhost:5173/auth/callback
+
+# Microsoft To-Do Configuration
+VITE_MSTODO_CLIENT_ID=your_microsoft_app_client_id
+VITE_MSTODO_CLIENT_SECRET=your_microsoft_app_client_secret
+VITE_MSTODO_REDIRECT_URI=http://localhost:3000/auth/mstodo/callback
+VITE_MSTODO_TENANT_ID=common
+
+# OAuth Protocol Configuration
+VITE_OAUTH_PROTOCOL_SCHEME=openza
+VITE_OAUTH_TIMEOUT_MINUTES=3</code></pre>
+                </div>
+                <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4">
+                    <p class="text-sm text-yellow-900">
+                        <strong>Security Warning:</strong> Never commit <code>.env.local</code> to version control. It contains sensitive credentials.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Todoist Setup -->
+            <section id="todoist" class="mb-16">
+                <h2 class="text-3xl font-bold mb-4">Todoist Integration Setup</h2>
+                <ol class="space-y-4">
+                    <li>
+                        <h3 class="font-bold mb-2">1. Create Todoist App</h3>
+                        <p class="text-gray-600 mb-2">Go to <a href="https://developer.todoist.com/appconsole.html" class="text-indigo-600 hover:underline" target="_blank">Todoist App Console</a></p>
+                    </li>
+                    <li>
+                        <h3 class="font-bold mb-2">2. Configure OAuth</h3>
+                        <p class="text-gray-600 mb-2">Set redirect URI:</p>
+                        <ul class="list-disc list-inside ml-4 text-gray-600">
+                            <li>Development: <code>http://localhost:5173/auth/callback</code></li>
+                            <li>Production: <code>openza://auth/callback</code></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <h3 class="font-bold mb-2">3. Copy Credentials</h3>
+                        <p class="text-gray-600">Add Client ID and Secret to your <code>.env.local</code> file</p>
+                    </li>
+                </ol>
+            </section>
+
+            <!-- Microsoft To-Do Setup -->
+            <section id="microsoft-todo" class="mb-16">
+                <h2 class="text-3xl font-bold mb-4">Microsoft To-Do Integration Setup</h2>
+                <ol class="space-y-4">
+                    <li>
+                        <h3 class="font-bold mb-2">1. Register Azure AD App</h3>
+                        <p class="text-gray-600 mb-2">Go to <a href="https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationsListBlade" class="text-indigo-600 hover:underline" target="_blank">Azure Portal - App Registrations</a></p>
+                    </li>
+                    <li>
+                        <h3 class="font-bold mb-2">2. Configure Authentication</h3>
+                        <ul class="list-disc list-inside ml-4 text-gray-600">
+                            <li>Add redirect URI: <code>http://localhost:3000/auth/mstodo/callback</code></li>
+                            <li>Enable "Accounts in any organizational directory and personal Microsoft accounts"</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <h3 class="font-bold mb-2">3. Create Client Secret</h3>
+                        <p class="text-gray-600">In "Certificates & secrets", create a new client secret</p>
+                    </li>
+                    <li>
+                        <h3 class="font-bold mb-2">4. Add API Permissions</h3>
+                        <p class="text-gray-600">Add Microsoft Graph permissions: <code>Tasks.ReadWrite</code>, <code>User.Read</code></p>
+                    </li>
+                </ol>
+            </section>
+
+            <!-- Local Database -->
+            <section id="local-database" class="mb-16">
+                <h2 class="text-3xl font-bold mb-4">Local Database</h2>
+                <p class="mb-4 text-gray-600">
+                    Openza uses SQLite with better-sqlite3 for offline task management. The database includes:
+                </p>
+                <ul class="list-disc list-inside space-y-2 text-gray-600 mb-4">
+                    <li>Full-text search (FTS5) for fast task searching</li>
+                    <li>Automatic migrations for schema updates</li>
+                    <li>Encrypted storage in Electron's app data directory</li>
+                    <li>Offline-first task creation and editing</li>
+                </ul>
+                <p class="text-gray-600">
+                    The database is automatically initialized on first run. No manual setup required.
+                </p>
+            </section>
+
+            <!-- Development -->
+            <section id="development" class="mb-16">
+                <h2 class="text-3xl font-bold mb-4">Development Guide</h2>
+
+                <h3 class="text-2xl font-bold mb-3">Development Commands</h3>
+                <div class="bg-gray-900 text-white rounded-lg p-4 mb-6">
+                    <pre><code># Start Vite dev server (web only)
+npm run dev
+
+# Start full Electron development (recommended)
+npm run dev:electron
+
+# Run linter
+npm run lint
+
+# Build for production
+npm run build
+
+# Build Electron app
+npm run build:electron
+
+# Platform-specific builds
+npm run build:win     # Windows
+npm run build:deb     # Linux Debian</code></pre>
+                </div>
+
+                <h3 class="text-2xl font-bold mb-3">Tech Stack</h3>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <h4 class="font-bold mb-2">Frontend</h4>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                            <li>• React 19</li>
+                            <li>• TypeScript</li>
+                            <li>• TanStack Router</li>
+                            <li>• TanStack Query</li>
+                            <li>• Tailwind CSS 4.x</li>
+                            <li>• Shadcn/ui</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-bold mb-2">Backend</h4>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                            <li>• Electron 36</li>
+                            <li>• SQLite with better-sqlite3</li>
+                            <li>• MSAL for Microsoft auth</li>
+                            <li>• Todoist API SDK</li>
+                            <li>• Microsoft Graph API</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Architecture -->
+            <section id="architecture" class="mb-16">
+                <h2 class="text-3xl font-bold mb-4">Architecture</h2>
+                <p class="mb-4 text-gray-600">Openza follows a multi-layered architecture:</p>
+
+                <h3 class="text-xl font-bold mb-2">Key Components</h3>
+                <ul class="space-y-3 mb-6">
+                    <li>
+                        <strong>TaskSourceContext:</strong> <span class="text-gray-600">Manages multi-provider data sources</span>
+                    </li>
+                    <li>
+                        <strong>useUnifiedTasks:</strong> <span class="text-gray-600">Aggregates tasks from all providers</span>
+                    </li>
+                    <li>
+                        <strong>Auth Manager:</strong> <span class="text-gray-600">Centralized authentication with secure token storage</span>
+                    </li>
+                    <li>
+                        <strong>IPC Security:</strong> <span class="text-gray-600">All sensitive operations in main process</span>
+                    </li>
+                </ul>
+
+                <h3 class="text-xl font-bold mb-2">Project Structure</h3>
+                <div class="bg-gray-900 text-white rounded-lg p-4">
+                    <pre><code>openza-desktop/
+├── electron/          # Main process
+│   ├── main.js       # Entry point
+│   └── modules/      # IPC handlers
+├── src/
+│   ├── components/   # React components
+│   ├── contexts/     # State management
+│   ├── hooks/        # Custom hooks
+│   └── utils/        # API clients
+└── docs/             # Documentation</code></pre>
+                </div>
+            </section>
+
+            <!-- Contributing -->
+            <section id="contributing" class="mb-16">
+                <h2 class="text-3xl font-bold mb-4">Contributing</h2>
+                <p class="mb-4 text-gray-600">
+                    Contributions are welcome! Please read our <a href="https://github.com/openza/openza-desktop/blob/main/CONTRIBUTING.md" class="text-indigo-600 hover:underline">Contributing Guide</a> first.
+                </p>
+
+                <h3 class="text-xl font-bold mb-2">Guidelines</h3>
+                <ul class="list-disc list-inside space-y-2 text-gray-600">
+                    <li>Follow the existing code style (ESLint)</li>
+                    <li>Use TypeScript for type safety</li>
+                    <li>Test authentication flows for all providers</li>
+                    <li>Maintain secure IPC patterns</li>
+                    <li>Update documentation for new features</li>
+                </ul>
+            </section>
+
+            <!-- Security -->
+            <section id="security" class="mb-16">
+                <h2 class="text-3xl font-bold mb-4">Security</h2>
+                <p class="mb-4 text-gray-600">
+                    Security is a top priority. See our <a href="https://github.com/openza/openza-desktop/blob/main/SECURITY.md" class="text-indigo-600 hover:underline">Security Policy</a> for details.
+                </p>
+
+                <h3 class="text-xl font-bold mb-2">Security Features</h3>
+                <ul class="list-disc list-inside space-y-2 text-gray-600 mb-4">
+                    <li>No hardcoded secrets</li>
+                    <li>Encrypted token storage</li>
+                    <li>IPC security (main process only for sensitive ops)</li>
+                    <li>CSP and context isolation</li>
+                    <li>OAuth 2.0 with PKCE</li>
+                </ul>
+
+                <div class="bg-red-50 border-l-4 border-red-500 p-4">
+                    <p class="text-sm text-red-900">
+                        <strong>Report Security Issues:</strong> Email deependra@solanky.dev with details. Do not open public issues for security vulnerabilities.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Footer -->
+            <footer class="border-t border-gray-200 pt-8 mt-16">
+                <div class="flex justify-between items-center text-sm text-gray-600">
+                    <p>&copy; 2025 Openza. MIT License.</p>
+                    <div class="space-x-4">
+                        <a href="https://github.com/openza/openza-desktop" class="hover:text-indigo-600">GitHub</a>
+                        <a href="https://openza.github.io" class="hover:text-indigo-600">Openza Home</a>
+                        <a href="https://github.com/openza/openza-desktop/issues" class="hover:text-indigo-600">Issues</a>
+                    </div>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Smooth scrolling script -->
+    <script>
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                    // Update active state
+                    document.querySelectorAll('.sidebar-link').forEach(link => {
+                        link.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                }
+            });
+        });
+
+        // Highlight active section in sidebar
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+                    document.querySelectorAll('.sidebar-link').forEach(link => {
+                        link.classList.remove('active');
+                        if (link.getAttribute('href') === `#${id}`) {
+                            link.classList.add('active');
+                        }
+                    });
+                }
+            });
+        }, { threshold: 0.5 });
+
+        document.querySelectorAll('section[id]').forEach(section => {
+            observer.observe(section);
+        });
+    </script>
+</body>
+</html>
