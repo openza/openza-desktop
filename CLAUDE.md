@@ -6,6 +6,31 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **IMPORTANT**: This is an open source project licensed under MIT. All contributions must adhere to open source best practices and security standards.
 
+### Git Workflow (CRITICAL)
+
+**NEVER work directly in the main branch:**
+- **ALWAYS** create a feature branch before making any changes
+- Branch naming convention: `<type>/<description>` (e.g., `feat/add-dark-mode`, `fix/oauth-timeout`, `docs/update-readme`)
+- Main branch is protected and should only receive changes via Pull Requests
+- Even for small changes, documentation updates, or fixes - use a feature branch
+
+**Workflow steps:**
+1. Ensure you're on main: `git checkout main`
+2. Pull latest changes: `git pull origin main`
+3. Create feature branch: `git checkout -b <type>/<description>`
+4. Make your changes
+5. Commit following conventional commit format
+6. Push branch: `git push -u origin <type>/<description>`
+7. Create Pull Request via GitHub CLI or web interface
+8. After PR is merged, delete the feature branch
+
+**If you accidentally work in main:**
+- DO NOT commit or push to main
+- Stash changes: `git stash`
+- Create feature branch: `git checkout -b <type>/<description>`
+- Apply changes: `git stash pop`
+- Proceed with normal workflow
+
 ### Security Considerations (CRITICAL)
 
 **NEVER commit or push:**
