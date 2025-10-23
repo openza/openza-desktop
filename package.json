@@ -185,6 +185,14 @@
       {
         "from": "dist",
         "to": "dist"
+      },
+      {
+        "from": "public/icon.ico",
+        "to": "icon.ico"
+      },
+      {
+        "from": "public/icon.png",
+        "to": "icon.png"
       }
     ]
   }

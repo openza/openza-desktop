@@ -133,13 +133,27 @@ function createWindow () {
     // Remove the application menu (like Todoist, Obsidian, etc.)
     Menu.setApplicationMenu(null);
 
+    // Determine the correct icon path based on platform and environment
+    let iconPath;
+    if (process.platform === 'win32') {
+        // Windows: Use .ico file for proper taskbar/system tray display
+        iconPath = process.env.NODE_ENV === 'development'
+            ? path.join(__dirname, '../public/icon.ico')
+            : path.join(process.resourcesPath, 'icon.ico');
+    } else {
+        // macOS/Linux: Use .png file
+        iconPath = process.env.NODE_ENV === 'development'
+            ? path.join(__dirname, '../public/icon.png')
+            : path.join(process.resourcesPath, 'icon.png');
+    }
+
     mainWindow = new BrowserWindow({
         width: 1200,
         height: 800,
         show: false,
         frame: true, // Keep window frame for native controls (minimize, maximize, close)
         autoHideMenuBar: true, // Hide menu bar
-        icon: path.join(__dirname, '../public/icon.png'),
+        icon: iconPath,
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             nodeIntegration: false,
