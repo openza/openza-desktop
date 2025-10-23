@@ -13,12 +13,27 @@ dist-ssr
 dist-electron
 *.local
 
-# Environment variables
+# Environment variables (contains API keys and secrets)
 .env
+.env.*
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Database files (may contain user data)
+*.db
+*.sqlite
+*.sqlite3
+
+# Security sensitive files
+credentials.json
+secrets.json
+*.key
+*.pem
+*.cert
+*.p12
+*.pfx
 
 # Editor directories and files
 .vscode/*
