@@ -122,7 +122,7 @@
         }
       ],
       "icon": "public/icon.ico",
-      "publisherName": "Openza"
+      "signAndEditExecutable": false
     },
     "nsis": {
       "oneClick": false,
