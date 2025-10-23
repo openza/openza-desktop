@@ -1,0 +1,9 @@
+<svg width="200" height="48" viewBox="0 0 200 48" xmlns="http://www.w3.org/2000/svg">
+  <!-- Checkmark Icon -->
+  <rect x="4" y="4" width="40" height="40" rx="8" ry="8" fill="#4f46e5"/>
+  <rect x="9" y="9" width="30" height="30" rx="4" ry="4" fill="#f8fafc"/>
+  <path d="M 15 24 L 20 29 L 33 16" stroke="#4f46e5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- Openza Text -->
+  <text x="56" y="34" font-family="system-ui, -apple-system, sans-serif" font-size="28" font-weight="600" fill="#6366f1">Openza</text>
+</svg>
