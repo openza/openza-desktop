@@ -89,16 +89,45 @@ try {
     releaseNotes = `## What's Changed\n\n${commits}\n\n`;
   }
 
-  // Get contributor info
-  const contributors = execSync(`git log ${lastTag}..HEAD --pretty=format:"%an"`, {
+  // Get contributor info (using email to map to GitHub usernames)
+  const contributorEmails = execSync(`git log ${lastTag}..HEAD --pretty=format:"%ae"`, {
     encoding: 'utf-8',
     cwd: projectRoot
-  }).trim().split('\n').filter((v, i, a) => a.indexOf(v) === i);
+  }).trim().split('\n').filter((v, i, a) => a.indexOf(v) === i && v);
 
-  if (contributors.length > 0) {
+  if (contributorEmails.length > 0) {
     releaseNotes += `## Contributors\n\n`;
-    contributors.forEach(contributor => {
-      releaseNotes += `- @${contributor}\n`;
+
+    // Map emails to GitHub usernames
+    // Try to get GitHub username from git config or fall back to email
+    const githubUsernames = new Set();
+
+    contributorEmails.forEach(email => {
+      // Try to get GitHub username from git log
+      try {
+        const username = execSync(`git log ${lastTag}..HEAD --author="${email}" --pretty=format:"%an" -1`, {
+          encoding: 'utf-8',
+          cwd: projectRoot
+        }).trim();
+
+        // Extract GitHub-style username (remove spaces, lowercase)
+        // For "Deependra Solanky" -> check if there's a better mapping
+        if (email.includes('deependra@solanky.dev')) {
+          githubUsernames.add('solankydev');
+        } else {
+          // For other contributors, use their name without spaces
+          const cleanUsername = username.replace(/\s+/g, '').toLowerCase();
+          githubUsernames.add(cleanUsername);
+        }
+      } catch {
+        // If can't get username, use email prefix
+        const emailPrefix = email.split('@')[0];
+        githubUsernames.add(emailPrefix);
+      }
+    });
+
+    githubUsernames.forEach(username => {
+      releaseNotes += `- @${username}\n`;
     });
   }
 
