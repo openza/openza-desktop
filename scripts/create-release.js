@@ -99,28 +99,30 @@ try {
     releaseNotes += `## Contributors\n\n`;
 
     // Map emails to GitHub usernames
-    // Try to get GitHub username from git config or fall back to email
     const githubUsernames = new Set();
 
     contributorEmails.forEach(email => {
-      // Try to get GitHub username from git log
       try {
-        const username = execSync(`git log ${lastTag}..HEAD --author="${email}" --pretty=format:"%an" -1`, {
-          encoding: 'utf-8',
-          cwd: projectRoot
-        }).trim();
+        // TODO: Use GitHub API to automatically resolve email -> username
+        // Example: gh api search/commits?q=author-email:EMAIL+repo:OWNER/REPO
+        // This would eliminate the need for hardcoded mappings
 
-        // Extract GitHub-style username (remove spaces, lowercase)
-        // For "Deependra Solanky" -> check if there's a better mapping
-        if (email.includes('deependra@solanky.dev')) {
-          githubUsernames.add('solankydev');
+        // Hardcoded mapping for known contributors
+        // When the project has multiple contributors, consider moving this to
+        // a configuration file (.github/contributors.json) or using GitHub API
+        const knownMappings = {
+          'deependra@solanky.dev': 'solankydev'
+        };
+
+        if (knownMappings[email]) {
+          githubUsernames.add(knownMappings[email]);
         } else {
-          // For other contributors, use their name without spaces
-          const cleanUsername = username.replace(/\s+/g, '').toLowerCase();
-          githubUsernames.add(cleanUsername);
+          // Fallback: use email prefix for unknown contributors
+          const emailPrefix = email.split('@')[0];
+          githubUsernames.add(emailPrefix);
         }
       } catch {
-        // If can't get username, use email prefix
+        // If anything fails, use email prefix
         const emailPrefix = email.split('@')[0];
         githubUsernames.add(emailPrefix);
       }
