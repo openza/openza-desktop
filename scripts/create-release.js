@@ -1,12 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
 import { getArtifactPaths } from './utils/get-artifact-paths.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const projectRoot = path.resolve(__dirname, '..');
 
 // ANSI color codes
 const colors = {
@@ -42,7 +37,7 @@ const isPrerelease = args.includes('--prerelease');
 const skipValidation = args.includes('--skip-validation');
 
 // Get artifact paths from package.json configuration
-const { version, productName, setupExe, portableExe, setupExeFilename, portableExeFilename } = getArtifactPaths();
+const { version, productName, projectRoot, setupExe, portableExe, setupExeFilename, portableExeFilename } = getArtifactPaths();
 const releaseTag = `v${version}`;
 
 log('\n🚀 Creating GitHub Release...\n', 'blue');
@@ -92,31 +87,31 @@ try {
   if (contributorEmails.length > 0) {
     releaseNotes += `## Contributors\n\n`;
 
+    // Load contributor mappings from config file
+    let knownMappings = {};
+    const contributorsConfigPath = path.join(projectRoot, '.github', 'contributors.json');
+    try {
+      if (fs.existsSync(contributorsConfigPath)) {
+        const contributorsConfig = JSON.parse(fs.readFileSync(contributorsConfigPath, 'utf-8'));
+        knownMappings = contributorsConfig.emailToGitHub || {};
+      }
+    } catch (err) {
+      // If config file is missing or invalid, continue with empty mappings
+      info(`Could not load contributor mappings: ${err?.message || String(err)}`);
+    }
+
     // Map emails to GitHub usernames
     const githubUsernames = new Set();
 
     contributorEmails.forEach(email => {
-      try {
-        // TODO: Use GitHub API to automatically resolve email -> username
-        // Example: gh api search/commits?q=author-email:EMAIL+repo:OWNER/REPO
-        // This would eliminate the need for hardcoded mappings
+      // TODO: Use GitHub API to automatically resolve email -> username
+      // Example: gh api search/commits?q=author-email:EMAIL+repo:OWNER/REPO
+      // This would eliminate the need for manual mappings in .github/contributors.json
 
-        // Hardcoded mapping for known contributors
-        // When the project has multiple contributors, consider moving this to
-        // a configuration file (.github/contributors.json) or using GitHub API
-        const knownMappings = {
-          'deependra@solanky.dev': 'solankydev'
-        };
-
-        if (knownMappings[email]) {
-          githubUsernames.add(knownMappings[email]);
-        } else {
-          // Fallback: use email prefix for unknown contributors
-          const emailPrefix = email.split('@')[0];
-          githubUsernames.add(emailPrefix);
-        }
-      } catch {
-        // If anything fails, use email prefix
+      if (knownMappings[email]) {
+        githubUsernames.add(knownMappings[email]);
+      } else {
+        // Fallback: use email prefix for unknown contributors
         const emailPrefix = email.split('@')[0];
         githubUsernames.add(emailPrefix);
       }
@@ -187,7 +182,7 @@ try {
       execSync(`git tag -d ${releaseTag}`, { cwd: projectRoot });
       success('Local tag deleted');
     } catch (cleanupErr) {
-      error(`Failed to delete local tag ${releaseTag}: ${cleanupErr.message || cleanupErr}`);
+      error(`Failed to delete local tag ${releaseTag}: ${cleanupErr?.message || String(cleanupErr)}`);
     }
   }
   process.exit(1);
@@ -258,7 +253,7 @@ try {
   }
 } catch (err) {
   error('\n❌ Failed to create GitHub release');
-  error('Error details: ' + err.message);
+  error('Error details: ' + (err?.message || String(err)));
 
   // Clean up tag if release creation failed
   info('Cleaning up tag...');
@@ -266,7 +261,7 @@ try {
     execSync(`git tag -d ${releaseTag}`, { cwd: projectRoot });
     success('Local tag deleted');
   } catch (cleanupErr) {
-    error(`Failed to delete local tag ${releaseTag}: ${cleanupErr.message || cleanupErr}`);
+    error(`Failed to delete local tag ${releaseTag}: ${cleanupErr?.message || String(cleanupErr)}`);
     error('You may need to manually delete the tag with: git tag -d ' + releaseTag);
   }
 

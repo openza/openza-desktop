@@ -1,5 +1,7 @@
 import fs from 'fs';
 import { execSync } from 'child_process';
+import { fileURLToPath } from 'url';
+import path from 'path';
 import { getArtifactPaths } from './utils/get-artifact-paths.js';
 
 // ANSI color codes for terminal output
@@ -33,7 +35,7 @@ function info(message) {
 }
 
 // Get artifact paths from package.json configuration
-const { version, distPath, setupExe, portableExe } = getArtifactPaths();
+const { version, projectRoot, distPath, setupExe, portableExe } = getArtifactPaths();
 
 log('\n🔍 Validating release preparation...\n', 'blue');
 

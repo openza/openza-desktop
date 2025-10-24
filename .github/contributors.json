@@ -1,0 +1,6 @@
+{
+  "emailToGitHub": {
+    "deependra@solanky.dev": "solankydev"
+  },
+  "_comment": "This file maps git commit email addresses to GitHub usernames for release notes. Add new mappings as contributors join the project."
+}

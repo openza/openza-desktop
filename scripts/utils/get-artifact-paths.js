@@ -6,16 +6,23 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const projectRoot = path.resolve(__dirname, '../..');
-
 /**
  * Get artifact paths based on package.json build configuration
+ * @param {string} [customProjectRoot] - Optional custom project root path (defaults to auto-detection)
  * @returns {Object} Object containing artifact paths and metadata
  */
-export function getArtifactPaths() {
+export function getArtifactPaths(customProjectRoot) {
+  // Auto-detect project root from this file's location (scripts/utils/)
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+  const projectRoot = customProjectRoot || path.resolve(__dirname, '../..');
+
   const packageJsonPath = path.join(projectRoot, 'package.json');
+
+  if (!fs.existsSync(packageJsonPath)) {
+    throw new Error(`package.json not found at ${packageJsonPath}`);
+  }
+
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
 
   const version = packageJson.version;
@@ -39,6 +46,7 @@ export function getArtifactPaths() {
   return {
     version,
     productName,
+    projectRoot,
     distPath,
     setupExe: path.join(distPath, setupExeFilename),
     portableExe: path.join(distPath, portableExeFilename),
