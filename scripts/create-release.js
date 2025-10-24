@@ -192,8 +192,9 @@ try {
     info('Cleaning up local tag...');
     try {
       execSync(`git tag -d ${releaseTag}`, { cwd: projectRoot });
-    } catch {
-      // Ignore
+      success('Local tag deleted');
+    } catch (cleanupErr) {
+      error(`Failed to delete local tag ${releaseTag}: ${cleanupErr.message || cleanupErr}`);
     }
   }
   process.exit(1);
@@ -270,9 +271,10 @@ try {
   info('Cleaning up tag...');
   try {
     execSync(`git tag -d ${releaseTag}`, { cwd: projectRoot });
-    info('Tag deleted');
-  } catch {
-    // Tag deletion failed, user will need to clean up manually
+    success('Local tag deleted');
+  } catch (cleanupErr) {
+    error(`Failed to delete local tag ${releaseTag}: ${cleanupErr.message || cleanupErr}`);
+    error('You may need to manually delete the tag with: git tag -d ' + releaseTag);
   }
 
   process.exit(1);
