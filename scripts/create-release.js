@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
+import { getArtifactPaths } from './utils/get-artifact-paths.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -40,11 +41,8 @@ const isDraft = args.includes('--draft');
 const isPrerelease = args.includes('--prerelease');
 const skipValidation = args.includes('--skip-validation');
 
-// Read package.json
-const packageJsonPath = path.join(projectRoot, 'package.json');
-const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
-const version = packageJson.version;
-const productName = packageJson.build?.productName || 'Openza Desktop';
+// Get artifact paths from package.json configuration
+const { version, productName, setupExe, portableExe, setupExeFilename, portableExeFilename } = getArtifactPaths();
 const releaseTag = `v${version}`;
 
 log('\n🚀 Creating GitHub Release...\n', 'blue');
@@ -61,11 +59,6 @@ if (!skipValidation) {
   }
   log('');
 }
-
-// Define file paths
-const distPath = path.join(projectRoot, 'dist-electron');
-const setupExe = path.join(distPath, `Openza-Desktop-Setup-${version}.exe`);
-const portableExe = path.join(distPath, 'Openza-Desktop-Portable.exe');
 
 // Generate release notes
 info('Generating release notes from git history...');
@@ -143,8 +136,8 @@ try {
 // Add download section
 releaseNotes += `\n## Downloads\n\n`;
 releaseNotes += `**Windows:**\n`;
-releaseNotes += `- 🔧 **Installer**: \`Openza-Desktop-Setup-${version}.exe\` - Installs to Program Files, creates shortcuts\n`;
-releaseNotes += `- 📦 **Portable**: \`Openza-Desktop-Portable.exe\` - No installation required, run from anywhere\n\n`;
+releaseNotes += `- 🔧 **Installer**: \`${setupExeFilename}\` - Installs to Program Files, creates shortcuts\n`;
+releaseNotes += `- 📦 **Portable**: \`${portableExeFilename}\` - No installation required, run from anywhere\n\n`;
 releaseNotes += `**System Requirements:**\n`;
 releaseNotes += `- Windows 10/11 (64-bit)\n`;
 releaseNotes += `- ~100 MB disk space\n\n`;

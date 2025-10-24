@@ -127,8 +127,10 @@
         }
       ],
       "icon": "public/icon.ico",
+      "_comment_verifyUpdateCodeSignature": "Set to false because auto-updates are not implemented. See CLAUDE.md 'Code Signing and Auto-Updates' section for details. IMPORTANT: Do not enable auto-updates without code signing.",
       "verifyUpdateCodeSignature": false
     },
+    "_comment_publish": "Set to null to explicitly disable auto-update mechanism. Manual downloads only via GitHub Releases.",
     "publish": null,
     "nsis": {
       "oneClick": false,

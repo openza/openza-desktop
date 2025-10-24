@@ -1,11 +1,6 @@
 import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const projectRoot = path.resolve(__dirname, '..');
+import { getArtifactPaths } from './utils/get-artifact-paths.js';
 
 // ANSI color codes for terminal output
 const colors = {
@@ -37,10 +32,8 @@ function info(message) {
   log(`ℹ ${message}`, 'cyan');
 }
 
-// Read package.json
-const packageJsonPath = path.join(projectRoot, 'package.json');
-const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
-const version = packageJson.version;
+// Get artifact paths from package.json configuration
+const { version, distPath, setupExe, portableExe } = getArtifactPaths();
 
 log('\n🔍 Validating release preparation...\n', 'blue');
 
@@ -87,9 +80,6 @@ try {
 
 // 4. Check build artifacts exist
 info('Checking build artifacts...');
-const distPath = path.join(projectRoot, 'dist-electron');
-const setupExe = path.join(distPath, `Openza-Desktop-Setup-${version}.exe`);
-const portableExe = path.join(distPath, 'Openza-Desktop-Portable.exe');
 
 if (!fs.existsSync(distPath)) {
   error('Build directory does not exist: dist-electron/');
