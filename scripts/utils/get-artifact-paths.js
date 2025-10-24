@@ -7,6 +7,15 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 /**
+ * Format an error object for display
+ * @param {Error|string|unknown} err - The error to format
+ * @returns {string} Formatted error message
+ */
+export function formatError(err) {
+  return err?.message ?? String(err);
+}
+
+/**
  * Get artifact paths based on package.json build configuration
  * @param {string} [customProjectRoot] - Optional custom project root path (defaults to auto-detection)
  * @returns {Object} Object containing artifact paths and metadata

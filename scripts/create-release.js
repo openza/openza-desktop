@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
-import { getArtifactPaths } from './utils/get-artifact-paths.js';
+import { getArtifactPaths, formatError } from './utils/get-artifact-paths.js';
 
 // ANSI color codes
 const colors = {
@@ -30,15 +30,6 @@ function info(message) {
   log(`ℹ ${message}`, 'cyan');
 }
 
-/**
- * Format an error object for display
- * @param {Error|string|unknown} err - The error to format
- * @returns {string} Formatted error message
- */
-function formatError(err) {
-  return err?.message ?? String(err);
-}
-
 // Parse command line arguments
 const args = process.argv.slice(2);
 const isDraft = args.includes('--draft');
@@ -46,7 +37,14 @@ const isPrerelease = args.includes('--prerelease');
 const skipValidation = args.includes('--skip-validation');
 
 // Get artifact paths from package.json configuration
-const { version, productName, projectRoot, setupExe, portableExe, setupExeFilename, portableExeFilename } = getArtifactPaths();
+let version, productName, projectRoot, setupExe, portableExe, setupExeFilename, portableExeFilename;
+try {
+  ({ version, productName, projectRoot, setupExe, portableExe, setupExeFilename, portableExeFilename } = getArtifactPaths());
+} catch (err) {
+  error('Failed to get artifact paths from package.json configuration:');
+  error(formatError(err));
+  process.exit(1);
+}
 const releaseTag = `v${version}`;
 
 log('\n🚀 Creating GitHub Release...\n', 'blue');
@@ -113,40 +111,8 @@ try {
     const githubUsernames = new Set();
 
     contributorEmails.forEach(email => {
-      // TODO: Implement GitHub API email-to-username resolution
-      // This would eliminate the need for manual mappings in .github/contributors.json
-      //
-      // Implementation approach:
-      // 1. Use GitHub CLI to search for commits by email:
-      //    gh api /search/commits?q=author-email:${email}+repo:${owner}/${repo} --jq '.items[0].author.login'
-      //    Requires GitHub API Accept header: application/vnd.github.cloak-preview
-      //
-      // 2. Handle rate limiting (60 requests/hour for unauthenticated, 5000 for authenticated):
-      //    - Cache results in .github/contributors.json after first lookup
-      //    - Implement exponential backoff on 403 responses
-      //    - Check X-RateLimit-Remaining header
-      //
-      // 3. Error handling:
-      //    - If email not found in any commits, fall back to email prefix
-      //    - If API fails, use cached mapping or email prefix
-      //    - Log warnings for unmapped contributors
-      //
-      // 4. Privacy considerations:
-      //    - Some users set email privacy settings (noreply@github.com)
-      //    - GitHub API may not return private emails
-      //    - Consider manual override in contributors.json for privacy-conscious users
-      //
-      // Example implementation:
-      // try {
-      //   const result = execSync(
-      //     `gh api /search/commits -H "Accept: application/vnd.github.cloak-preview" ` +
-      //     `-f q="author-email:${email} repo:openza/openza-desktop" --jq ".items[0].author.login"`,
-      //     { encoding: 'utf-8', stdio: 'pipe' }
-      //   ).trim();
-      //   if (result) githubUsernames.add(result);
-      // } catch (err) {
-      //   // Fall back to manual mapping or email prefix
-      // }
+      // TODO: Auto-resolve GitHub usernames from emails using GitHub API
+      // See RELEASE.md "Future Improvements > Automated Contributor Username Resolution" for implementation details
 
       if (knownMappings[email]) {
         githubUsernames.add(knownMappings[email]);

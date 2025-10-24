@@ -110,10 +110,16 @@ Same as production, but creates a **draft release** that you can:
 
 ### 5. Push Changes
 
-After successful release creation, push your changes:
+After successful release creation, push your changes to the main branch:
 
 ```bash
 git push origin main
+```
+
+**Note:** The release script automatically pushes the version tag to the remote repository during step 4. You only need to manually push the tag if the release script failed before completing the tag push:
+
+```bash
+# Only if the release script failed and the tag wasn't pushed:
 git push origin v0.1.0  # Replace with your version
 ```
 
@@ -255,12 +261,60 @@ Examples:
 
 ---
 
+## Future Improvements
+
+### Automated Contributor Username Resolution
+
+Currently, contributor GitHub usernames are mapped manually in `.github/contributors.json`. This can be automated using the GitHub API.
+
+**Implementation Approach:**
+
+1. **Use GitHub CLI to search for commits by email:**
+   ```bash
+   gh api /search/commits \
+     -H "Accept: application/vnd.github.cloak-preview" \
+     -f q="author-email:EMAIL repo:openza/openza-desktop" \
+     --jq ".items[0].author.login"
+   ```
+
+2. **Handle rate limiting** (60 requests/hour unauthenticated, 5000/hour authenticated):
+   - Cache results in `.github/contributors.json` after first lookup
+   - Implement exponential backoff on 403 responses
+   - Check `X-RateLimit-Remaining` header
+
+3. **Error handling:**
+   - If email not found in any commits, fall back to email prefix
+   - If API fails, use cached mapping or email prefix
+   - Log warnings for unmapped contributors
+
+4. **Privacy considerations:**
+   - Some users set email privacy settings (`noreply@github.com`)
+   - GitHub API may not return private emails
+   - Consider manual override in `contributors.json` for privacy-conscious users
+
+**Example Implementation:**
+```javascript
+try {
+  const result = execSync(
+    `gh api /search/commits -H "Accept: application/vnd.github.cloak-preview" ` +
+    `-f q="author-email:${email} repo:openza/openza-desktop" --jq ".items[0].author.login"`,
+    { encoding: 'utf-8', stdio: 'pipe' }
+  ).trim();
+  if (result) githubUsernames.add(result);
+} catch (err) {
+  // Fall back to manual mapping or email prefix
+}
+```
+
+---
+
 ## Additional Resources
 
 - [Semantic Versioning](https://semver.org/)
 - [GitHub CLI Documentation](https://cli.github.com/manual/)
 - [electron-builder Configuration](https://www.electron.build/configuration/configuration)
 - [Keep a Changelog](https://keepachangelog.com/)
+- [GitHub Search API](https://docs.github.com/en/rest/search)
 
 ---
 

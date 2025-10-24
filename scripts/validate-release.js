@@ -1,8 +1,6 @@
 import fs from 'fs';
 import { execSync } from 'child_process';
-import { fileURLToPath } from 'url';
-import path from 'path';
-import { getArtifactPaths } from './utils/get-artifact-paths.js';
+import { getArtifactPaths, formatError } from './utils/get-artifact-paths.js';
 
 // ANSI color codes for terminal output
 const colors = {
@@ -39,7 +37,7 @@ let version, projectRoot, distPath, setupExe, portableExe;
 try {
   ({ version, projectRoot, distPath, setupExe, portableExe } = getArtifactPaths());
 } catch (err) {
-  error('Failed to load artifact paths: ' + (err?.message || String(err)));
+  error('Failed to load artifact paths: ' + formatError(err));
   error('Make sure you are running this script from the project root and that package.json exists.');
   process.exit(1);
 }
