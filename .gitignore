@@ -46,6 +46,9 @@ secrets.json
 *.sln
 *.sw?
 
+# Claude Code local settings
+.claude/settings.local.json
+
 # Product planning (not tracked in git)
 Product Roadmap/
 

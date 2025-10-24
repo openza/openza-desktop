@@ -4,6 +4,24 @@ A modern, beautiful desktop client for managing tasks from multiple sources incl
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux-lightgrey)
+![GitHub Release](https://img.shields.io/github/v/release/openza/openza-desktop)
+![Downloads](https://img.shields.io/github/downloads/openza/openza-desktop/total)
+
+## Download
+
+### Latest Release
+
+**Windows:**
+- 🔧 [**Installer**](https://github.com/openza/openza-desktop/releases/latest) - Download `Openza-Desktop-Setup-{version}.exe` - Installs to Program Files, creates shortcuts
+- 📦 [**Portable**](https://github.com/openza/openza-desktop/releases/latest) - Download `Openza-Desktop-Portable.exe` - No installation required, run from anywhere
+
+**System Requirements:**
+- Windows 10/11 (64-bit)
+- ~100 MB disk space
+
+> **Note**: Windows SmartScreen may show a warning for unsigned apps. Click "More info" → "Run anyway". This is normal for open-source applications that aren't code-signed with an expensive certificate.
+
+[**View All Releases**](https://github.com/openza/openza-desktop/releases) | [**Release Notes**](https://github.com/openza/openza-desktop/releases/latest)
 
 ## Features
 
@@ -23,12 +41,7 @@ A modern, beautiful desktop client for managing tasks from multiple sources incl
 
 ## Installation
 
-### Download Pre-built Binaries
-
-Download the latest release for your platform:
-
-- **Windows**: Download `Openza-Setup-{version}.exe` (installer) or `Openza-Portable.exe` (portable version)
-- **Linux**: Download `Openza_{version}_amd64.deb` (Debian/Ubuntu) or `Openza-{version}.AppImage`
+See the [Download](#download) section above for pre-built binaries.
 
 ### Build from Source
 

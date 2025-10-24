@@ -41,7 +41,11 @@
     "start": "electron .",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "electron-rebuild": "electron-rebuild",
-    "postinstall": "electron-rebuild"
+    "postinstall": "electron-rebuild",
+    "prerelease": "node scripts/validate-release.js",
+    "release": "node scripts/create-release.js",
+    "release:draft": "node scripts/create-release.js --draft",
+    "release:check": "node scripts/validate-release.js"
   },
   "dependencies": {
     "@azure/msal-browser": "^4.15.0",
@@ -87,6 +91,7 @@
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
     "png-to-ico": "^3.0.1",
+    "rcedit": "^4.0.1",
     "sharp": "^0.34.4",
     "tailwindcss": "^4.1.7",
     "tw-animate-css": "^1.3.0",
@@ -97,7 +102,7 @@
   },
   "build": {
     "appId": "com.openza.app",
-    "productName": "Openza",
+    "productName": "Openza Desktop",
     "directories": {
       "output": "dist-electron"
     },
@@ -122,18 +127,23 @@
         }
       ],
       "icon": "public/icon.ico",
-      "publisherName": "Openza"
+      "_comment_verifyUpdateCodeSignature": "Set to false because auto-updates are not implemented. See CLAUDE.md 'Code Signing and Auto-Updates' section for details. IMPORTANT: Do not enable auto-updates without code signing.",
+      "verifyUpdateCodeSignature": false
     },
+    "_comment_publish": "Set to null to explicitly disable auto-update mechanism. Manual downloads only via GitHub Releases.",
+    "publish": null,
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Openza",
-      "artifactName": "Openza-Setup-${version}.${ext}"
+      "shortcutName": "Openza Desktop",
+      "artifactName": "Openza-Desktop-Setup-${version}.${ext}",
+      "installerIcon": "public/icon.ico",
+      "uninstallerIcon": "public/icon.ico"
     },
     "portable": {
-      "artifactName": "Openza-Portable.exe"
+      "artifactName": "Openza-Desktop-Portable.exe"
     },
     "mac": {
       "icon": "public/icon.png",
@@ -185,6 +195,14 @@
       {
         "from": "dist",
         "to": "dist"
+      },
+      {
+        "from": "public/icon.ico",
+        "to": "icon.ico"
+      },
+      {
+        "from": "public/icon.png",
+        "to": "icon.png"
       }
     ]
   }
