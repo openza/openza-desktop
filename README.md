@@ -12,8 +12,8 @@ A modern, beautiful desktop client for managing tasks from multiple sources incl
 ### Latest Release
 
 **Windows:**
-- 🔧 [**Installer**](https://github.com/openza/openza-desktop/releases/latest/download/Openza-Setup-0.1.0.exe) - Installs to Program Files, creates shortcuts
-- 📦 [**Portable**](https://github.com/openza/openza-desktop/releases/latest/download/Openza-Portable.exe) - No installation required, run from anywhere
+- 🔧 [**Installer**](https://github.com/openza/openza-desktop/releases/latest) - Download `Openza-Setup-{version}.exe` - Installs to Program Files, creates shortcuts
+- 📦 [**Portable**](https://github.com/openza/openza-desktop/releases/latest) - Download `Openza-Portable.exe` - No installation required, run from anywhere
 
 **System Requirements:**
 - Windows 10/11 (64-bit)
