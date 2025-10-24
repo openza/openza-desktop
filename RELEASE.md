@@ -55,8 +55,8 @@ npm run build:win
 ```
 
 This creates:
-- `dist-electron/Openza-Setup-X.Y.Z.exe` - NSIS installer
-- `dist-electron/Openza-Portable.exe` - Portable executable
+- `dist-electron/Openza-Desktop-Setup-X.Y.Z.exe` - NSIS installer
+- `dist-electron/Openza-Desktop-Portable.exe` - Portable executable
 
 **Verify the builds:**
 - Check that both exe files exist
@@ -215,9 +215,9 @@ If the automated scripts don't work, you can create releases manually:
 ```bash
 # Create release with files
 gh release create v0.1.0 \
-  dist-electron/Openza-Setup-0.1.0.exe \
-  dist-electron/Openza-Portable.exe \
-  --title "Openza 0.1.0" \
+  dist-electron/Openza-Desktop-Setup-0.1.0.exe \
+  dist-electron/Openza-Desktop-Portable.exe \
+  --title "Openza Desktop 0.1.0" \
   --generate-notes
 ```
 
@@ -225,9 +225,11 @@ gh release create v0.1.0 \
 
 1. Go to: https://github.com/openza/openza-desktop/releases/new
 2. Choose tag: Create new tag `v0.1.0`
-3. Fill in release title: `Openza 0.1.0`
+3. Fill in release title: `Openza Desktop 0.1.0`
 4. Write release notes or click "Generate release notes"
-5. Drag and drop both exe files
+5. Drag and drop both exe files:
+   - `Openza-Desktop-Setup-0.1.0.exe`
+   - `Openza-Desktop-Portable.exe`
 6. Click "Publish release"
 
 ---

@@ -104,9 +104,40 @@ try {
     const githubUsernames = new Set();
 
     contributorEmails.forEach(email => {
-      // TODO: Use GitHub API to automatically resolve email -> username
-      // Example: gh api search/commits?q=author-email:EMAIL+repo:OWNER/REPO
+      // TODO: Implement GitHub API email-to-username resolution
       // This would eliminate the need for manual mappings in .github/contributors.json
+      //
+      // Implementation approach:
+      // 1. Use GitHub CLI to search for commits by email:
+      //    gh api /search/commits?q=author-email:${email}+repo:${owner}/${repo} --jq '.items[0].author.login'
+      //    Requires GitHub API Accept header: application/vnd.github.cloak-preview
+      //
+      // 2. Handle rate limiting (60 requests/hour for unauthenticated, 5000 for authenticated):
+      //    - Cache results in .github/contributors.json after first lookup
+      //    - Implement exponential backoff on 403 responses
+      //    - Check X-RateLimit-Remaining header
+      //
+      // 3. Error handling:
+      //    - If email not found in any commits, fall back to email prefix
+      //    - If API fails, use cached mapping or email prefix
+      //    - Log warnings for unmapped contributors
+      //
+      // 4. Privacy considerations:
+      //    - Some users set email privacy settings (noreply@github.com)
+      //    - GitHub API may not return private emails
+      //    - Consider manual override in contributors.json for privacy-conscious users
+      //
+      // Example implementation:
+      // try {
+      //   const result = execSync(
+      //     `gh api /search/commits -H "Accept: application/vnd.github.cloak-preview" ` +
+      //     `-f q="author-email:${email} repo:openza/openza-desktop" --jq ".items[0].author.login"`,
+      //     { encoding: 'utf-8', stdio: 'pipe' }
+      //   ).trim();
+      //   if (result) githubUsernames.add(result);
+      // } catch (err) {
+      //   // Fall back to manual mapping or email prefix
+      // }
 
       if (knownMappings[email]) {
         githubUsernames.add(knownMappings[email]);

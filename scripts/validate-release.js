@@ -41,13 +41,29 @@ log('\n🔍 Validating release preparation...\n', 'blue');
 
 let hasErrors = false;
 
-// 1. Check version format
+// 1. Check version format (supports semantic versioning with pre-release and build metadata)
 info(`Checking version: ${version}`);
-if (!/^\d+\.\d+\.\d+$/.test(version)) {
-  error(`Invalid version format: ${version}. Expected format: X.Y.Z`);
+// Semantic versioning regex: X.Y.Z[-prerelease][+build]
+// Examples: 1.0.0, 1.0.0-beta.1, 1.0.0-alpha.1+20130313144700, 1.0.0+build.123
+const semverRegex = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/;
+if (!semverRegex.test(version)) {
+  error(`Invalid version format: ${version}`);
+  error('Expected semantic versioning format: X.Y.Z[-prerelease][+build]');
+  error('Examples: 1.0.0, 1.0.0-beta.1, 1.0.0-alpha.1+20130313144700');
   hasErrors = true;
 } else {
   success(`Version format is valid: ${version}`);
+
+  // Provide helpful info about version type
+  if (version.includes('-')) {
+    const prereleaseInfo = version.split('-')[1].split('+')[0];
+    info(`Pre-release version detected: ${prereleaseInfo}`);
+    info('Remember to use --prerelease flag when creating the release');
+  }
+  if (version.includes('+')) {
+    const buildInfo = version.split('+')[1];
+    info(`Build metadata detected: ${buildInfo}`);
+  }
 }
 
 // 2. Check git working directory
