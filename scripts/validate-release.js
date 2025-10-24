@@ -35,7 +35,14 @@ function info(message) {
 }
 
 // Get artifact paths from package.json configuration
-const { version, projectRoot, distPath, setupExe, portableExe } = getArtifactPaths();
+let version, projectRoot, distPath, setupExe, portableExe;
+try {
+  ({ version, projectRoot, distPath, setupExe, portableExe } = getArtifactPaths());
+} catch (err) {
+  error('Failed to load artifact paths: ' + (err?.message || String(err)));
+  error('Make sure you are running this script from the project root and that package.json exists.');
+  process.exit(1);
+}
 
 log('\n🔍 Validating release preparation...\n', 'blue');
 

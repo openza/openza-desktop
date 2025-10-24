@@ -261,7 +261,7 @@ Copy `.env.example` to `.env.local` and configure:
 **Code Signing and Auto-Updates:**
 - `verifyUpdateCodeSignature: false` - Auto-update signature verification disabled
 - `publish: null` - Auto-updates not implemented (manual downloads from GitHub)
-- **Current Risk**: NONE (no auto-update mechanism exists)
+- **Current Risk**: None (no auto-update mechanism exists)
 - **Future**: When implementing auto-updates, obtain code signing certificate and enable verification
 - See "Code Signing and Auto-Updates" section below for details
 
@@ -299,7 +299,7 @@ Copy `.env.example` to `.env.local` and configure:
 
 ### Security Implications
 
-**Current Risk Level: NONE**
+**Current Risk Level: None**
 - Auto-updates are not implemented in the application
 - Users download manually from GitHub Releases
 - `verifyUpdateCodeSignature` setting has no effect without auto-updater

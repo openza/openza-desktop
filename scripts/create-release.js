@@ -30,6 +30,15 @@ function info(message) {
   log(`ℹ ${message}`, 'cyan');
 }
 
+/**
+ * Format an error object for display
+ * @param {Error|string|unknown} err - The error to format
+ * @returns {string} Formatted error message
+ */
+function formatError(err) {
+  return err?.message ?? String(err);
+}
+
 // Parse command line arguments
 const args = process.argv.slice(2);
 const isDraft = args.includes('--draft');
@@ -97,7 +106,7 @@ try {
       }
     } catch (err) {
       // If config file is missing or invalid, continue with empty mappings
-      info(`Could not load contributor mappings: ${err?.message || String(err)}`);
+      info(`Could not load contributor mappings: ${formatError(err)}`);
     }
 
     // Map emails to GitHub usernames
@@ -213,7 +222,7 @@ try {
       execSync(`git tag -d ${releaseTag}`, { cwd: projectRoot });
       success('Local tag deleted');
     } catch (cleanupErr) {
-      error(`Failed to delete local tag ${releaseTag}: ${cleanupErr?.message || String(cleanupErr)}`);
+      error(`Failed to delete local tag ${releaseTag}: ${formatError(cleanupErr)}`);
     }
   }
   process.exit(1);
@@ -284,7 +293,7 @@ try {
   }
 } catch (err) {
   error('\n❌ Failed to create GitHub release');
-  error('Error details: ' + (err?.message || String(err)));
+  error('Error details: ' + formatError(err));
 
   // Clean up tag if release creation failed
   info('Cleaning up tag...');
@@ -292,7 +301,7 @@ try {
     execSync(`git tag -d ${releaseTag}`, { cwd: projectRoot });
     success('Local tag deleted');
   } catch (cleanupErr) {
-    error(`Failed to delete local tag ${releaseTag}: ${cleanupErr?.message || String(cleanupErr)}`);
+    error(`Failed to delete local tag ${releaseTag}: ${formatError(cleanupErr)}`);
     error('You may need to manually delete the tag with: git tag -d ' + releaseTag);
   }
 
