@@ -64,8 +64,8 @@ if (!skipValidation) {
 
 // Define file paths
 const distPath = path.join(projectRoot, 'dist-electron');
-const setupExe = path.join(distPath, `Openza-Setup-${version}.exe`);
-const portableExe = path.join(distPath, 'Openza-Portable.exe');
+const setupExe = path.join(distPath, `Openza-Desktop-Setup-${version}.exe`);
+const portableExe = path.join(distPath, 'Openza-Desktop-Portable.exe');
 
 // Generate release notes
 info('Generating release notes from git history...');
@@ -143,8 +143,8 @@ try {
 // Add download section
 releaseNotes += `\n## Downloads\n\n`;
 releaseNotes += `**Windows:**\n`;
-releaseNotes += `- 🔧 **Installer**: \`Openza-Setup-${version}.exe\` - Installs to Program Files, creates shortcuts\n`;
-releaseNotes += `- 📦 **Portable**: \`Openza-Portable.exe\` - No installation required, run from anywhere\n\n`;
+releaseNotes += `- 🔧 **Installer**: \`Openza-Desktop-Setup-${version}.exe\` - Installs to Program Files, creates shortcuts\n`;
+releaseNotes += `- 📦 **Portable**: \`Openza-Desktop-Portable.exe\` - No installation required, run from anywhere\n\n`;
 releaseNotes += `**System Requirements:**\n`;
 releaseNotes += `- Windows 10/11 (64-bit)\n`;
 releaseNotes += `- ~100 MB disk space\n\n`;

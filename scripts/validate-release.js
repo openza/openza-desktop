@@ -88,8 +88,8 @@ try {
 // 4. Check build artifacts exist
 info('Checking build artifacts...');
 const distPath = path.join(projectRoot, 'dist-electron');
-const setupExe = path.join(distPath, `Openza-Setup-${version}.exe`);
-const portableExe = path.join(distPath, 'Openza-Portable.exe');
+const setupExe = path.join(distPath, `Openza-Desktop-Setup-${version}.exe`);
+const portableExe = path.join(distPath, 'Openza-Desktop-Portable.exe');
 
 if (!fs.existsSync(distPath)) {
   error('Build directory does not exist: dist-electron/');

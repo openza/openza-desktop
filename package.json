@@ -135,13 +135,13 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Openza",
-      "artifactName": "Openza-Setup-${version}.${ext}",
+      "shortcutName": "Openza Desktop",
+      "artifactName": "Openza-Desktop-Setup-${version}.${ext}",
       "installerIcon": "public/icon.ico",
       "uninstallerIcon": "public/icon.ico"
     },
     "portable": {
-      "artifactName": "Openza-Portable.exe"
+      "artifactName": "Openza-Desktop-Portable.exe"
     },
     "mac": {
       "icon": "public/icon.png",
