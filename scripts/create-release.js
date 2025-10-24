@@ -44,6 +44,7 @@ const skipValidation = args.includes('--skip-validation');
 const packageJsonPath = path.join(projectRoot, 'package.json');
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
 const version = packageJson.version;
+const productName = packageJson.build?.productName || 'Openza Desktop';
 const releaseTag = `v${version}`;
 
 log('\n🚀 Creating GitHub Release...\n', 'blue');
@@ -203,7 +204,7 @@ let ghCommand = 'gh release create';
 ghCommand += ` ${releaseTag}`;
 ghCommand += ` "${setupExe}"`;
 ghCommand += ` "${portableExe}"`;
-ghCommand += ` --title "Openza ${version}"`;
+ghCommand += ` --title "${productName} ${version}"`;
 ghCommand += ` --notes-file "${releaseNotesPath}"`;
 
 if (isDraft) {
