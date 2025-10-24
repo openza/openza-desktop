@@ -258,6 +258,13 @@ Copy `.env.example` to `.env.local` and configure:
 - All OAuth flows use system browser for enhanced security
 - Strict CSP and context isolation enabled
 
+**Code Signing and Auto-Updates:**
+- `verifyUpdateCodeSignature: false` - Auto-update signature verification disabled
+- `publish: null` - Auto-updates not implemented (manual downloads from GitHub)
+- **Current Risk**: NONE (no auto-update mechanism exists)
+- **Future**: When implementing auto-updates, obtain code signing certificate and enable verification
+- See "Code Signing and Auto-Updates" section below for details
+
 **Multi-Provider Integration:**
 - Task data normalized across providers for consistent UI
 - Each provider has dedicated authentication and API management
@@ -276,6 +283,87 @@ Copy `.env.example` to `.env.local` and configure:
 - Follow established authentication patterns for new providers
 - Maintain type safety with comprehensive TypeScript interfaces
 - Use secure IPC for any main process communication
+
+## Code Signing and Auto-Updates
+
+### Current Status
+**Code signing is NOT implemented.** Releases are unsigned.
+
+### Configuration
+```json
+{
+  "verifyUpdateCodeSignature": false,
+  "publish": null
+}
+```
+
+### Security Implications
+
+**Current Risk Level: NONE**
+- Auto-updates are not implemented in the application
+- Users download manually from GitHub Releases
+- `verifyUpdateCodeSignature` setting has no effect without auto-updater
+
+**Why This Is Safe Now:**
+1. No electron-updater or auto-update mechanism exists
+2. Users must manually download from trusted GitHub source
+3. GitHub provides release integrity (commit SHA, author verification)
+4. Users can review release notes before downloading
+
+**Future Considerations:**
+If/when implementing auto-updates:
+
+⚠️ **CRITICAL**: Enable code signing BEFORE implementing auto-updates
+
+**Steps to Implement Auto-Updates Securely:**
+1. **Purchase code signing certificate** (~$300-500/year)
+   - DigiCert, Sectigo, or similar trusted CA
+   - Extended Validation (EV) recommended for Windows SmartScreen
+
+2. **Configure package.json:**
+   ```json
+   {
+     "win": {
+       "certificateFile": "path/to/cert.pfx",
+       "certificatePassword": "env:CERT_PASSWORD",
+       "verifyUpdateCodeSignature": true
+     },
+     "publish": {
+       "provider": "github",
+       "owner": "openza",
+       "repo": "openza-desktop"
+     }
+   }
+   ```
+
+3. **Implement electron-updater:**
+   - Install: `npm install electron-updater`
+   - Add update checks in main process
+   - Handle update downloads and installation
+   - Provide UI feedback to users
+
+4. **CI/CD Integration:**
+   - Store certificate and password in GitHub Secrets
+   - Sign releases in GitHub Actions workflow
+   - Only sign releases from `main` branch
+
+5. **Testing:**
+   - Test update flow thoroughly
+   - Verify signature validation works
+   - Test rollback scenarios
+   - Document update process for users
+
+**Alternative Approaches:**
+- **GitHub Actions + Secrets**: Automate signing in CI/CD
+- **Hardware Security Module (HSM)**: For enterprise-grade security
+- **GPG Signatures**: Alternative to code signing (Linux-friendly)
+- **Checksums/Hashes**: Provide SHA256 in release notes
+
+**Documentation for Users:**
+- Explain why unsigned (cost, open source project)
+- Provide manual verification steps (checksums)
+- Link to GitHub Releases for transparency
+- Document how to verify release authenticity
 
 ## Claude Code Configuration
 

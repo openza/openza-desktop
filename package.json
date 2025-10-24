@@ -129,6 +129,7 @@
       "icon": "public/icon.ico",
       "verifyUpdateCodeSignature": false
     },
+    "publish": null,
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
