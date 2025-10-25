@@ -90,7 +90,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             {/* Header with Avatar */}
             <div className="px-3 py-1">
               <div className="flex items-center justify-between mb-2 px-4 pb-4 border-b">
-                <img src={logoSvg} alt="Openza" className="h-8" />
+                <img src={logoSvg} alt="Openza" className="h-8 w-auto" />
                 <Button
                   variant="ghost"
                   size="icon"

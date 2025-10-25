@@ -265,7 +265,7 @@ const SettingsOverlay = ({ isOpen, onClose }: SettingsOverlayProps) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-5xl h-[85vh] overflow-hidden bg-white shadow-2xl flex flex-col">
+      <Card className="w-full max-w-5xl max-h-[85vh] overflow-hidden bg-white shadow-2xl flex flex-col">
         <CardHeader className="border-b">
           <div className="flex items-center justify-between">
             <div>
