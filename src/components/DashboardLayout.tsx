@@ -50,6 +50,7 @@ const menuItems = [
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [logoError, setLogoError] = useState(false);
   const location = useLocation();
 
   const getPageTitle = () => {
@@ -90,15 +91,19 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             {/* Header with Avatar */}
             <div className="px-3 py-1">
               <div className="flex items-center justify-between mb-2 px-4 pb-4 border-b">
-                <img
-                  src={logoSvg}
-                  alt="Openza"
-                  className="h-8 w-auto"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                    console.error('Failed to load Openza logo');
-                  }}
-                />
+                {!logoError ? (
+                  <img
+                    src={logoSvg}
+                    alt="Openza"
+                    className="h-8 w-auto"
+                    onError={() => {
+                      setLogoError(true);
+                      console.error('Failed to load Openza logo, showing fallback text');
+                    }}
+                  />
+                ) : (
+                  <h2 className="text-lg font-semibold tracking-tight">Openza</h2>
+                )}
                 <Button
                   variant="ghost"
                   size="icon"
