@@ -246,6 +246,14 @@ export class DatabaseManager {
         query += ` AND json_extract(t.integrations, '$.${filters.has_integration}') IS NOT NULL`;
       }
 
+      // Hide deferred tasks (GTD Someday/Maybe) unless explicitly showing them
+      // Tasks with defer_until > today should not appear in normal views
+      if (!filters.search) {
+        const today = new Date().toISOString().split('T')[0];
+        query += ` AND (t.defer_until IS NULL OR t.defer_until <= ?)`;
+        params.push(today);
+      }
+
       if (filters.search) {
         query = `
           SELECT t.*, p.name as project_name, p.color as project_color,
