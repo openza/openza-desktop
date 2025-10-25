@@ -265,11 +265,16 @@ const SettingsOverlay = ({ isOpen, onClose }: SettingsOverlayProps) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-5xl max-h-[85vh] overflow-hidden bg-white shadow-2xl flex flex-col">
+      <Card
+        className="w-full max-w-5xl max-h-[85vh] overflow-hidden bg-white shadow-2xl flex flex-col"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="settings-dialog-title"
+      >
         <CardHeader className="border-b">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-2xl">Settings</CardTitle>
+              <CardTitle id="settings-dialog-title" className="text-2xl">Settings</CardTitle>
               <CardDescription>Manage your Openza Desktop preferences</CardDescription>
             </div>
             <button
@@ -286,7 +291,7 @@ const SettingsOverlay = ({ isOpen, onClose }: SettingsOverlayProps) => {
         <div className="flex flex-1 overflow-hidden">
           {/* Left Sidebar */}
           <aside className="w-56 border-r bg-gray-50 overflow-y-auto">
-            <nav className="p-3 space-y-1">
+            <nav className="p-3 space-y-1" role="tablist" aria-label="Settings categories">
               {settingsCategories.map((category) => {
                 const Icon = category.icon;
                 const isActive = selectedCategory === category.id;
@@ -295,6 +300,10 @@ const SettingsOverlay = ({ isOpen, onClose }: SettingsOverlayProps) => {
                   <button
                     key={category.id}
                     onClick={() => setSelectedCategory(category.id)}
+                    role="tab"
+                    aria-selected={isActive}
+                    aria-controls={`${category.id}-panel`}
+                    id={`${category.id}-tab`}
                     className={`
                       w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors
                       ${isActive
@@ -313,7 +322,12 @@ const SettingsOverlay = ({ isOpen, onClose }: SettingsOverlayProps) => {
 
           {/* Right Content Area */}
           <div className="flex-1 overflow-y-auto">
-            <div className="p-5">
+            <div
+              role="tabpanel"
+              id={`${selectedCategory}-panel`}
+              aria-labelledby={`${selectedCategory}-tab`}
+              className="p-5"
+            >
               {selectedCategory === 'active-provider' && (
                 <div className="space-y-4">
                   <div className="mb-3">
