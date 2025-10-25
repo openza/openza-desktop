@@ -2,19 +2,9 @@ import React, { useState } from 'react';
 import { Link, useLocation } from '@tanstack/react-router';
 import { Button } from "@/components/ui/button.tsx";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { 
-  LayoutDashboard, 
-  CheckSquare, 
+  LayoutDashboard,
+  CheckSquare,
   Settings,
-  UserCircle,
-  User,
   Calendar,
   AlertCircle,
   Tags
@@ -24,6 +14,7 @@ import Projects from './Projects';
 import SettingsOverlay from './SettingsOverlay';
 import TaskSourceSelector from './TaskSourceSelector';
 import { CreateTaskButton } from './CreateTaskModal';
+import logoSvg from '@/assets/logo.svg';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -54,11 +45,6 @@ const menuItems = [
     title: "Tasks",
     href: "/tasks",
     icon: CheckSquare,
-  },
-  {
-    title: "Settings",
-    href: "/settings",
-    icon: Settings,
   },
 ];
 
@@ -104,38 +90,25 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             {/* Header with Avatar */}
             <div className="px-3 py-1">
               <div className="flex items-center justify-between mb-2 px-4 pb-4 border-b">
-                <h2 className="text-lg font-semibold tracking-tight">
-                  Openza
-                </h2>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="rounded-full hover:bg-gray-100"
-                    >
-                      <UserCircle className="h-6 w-6 text-gray-600" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link to="/profile" className="flex items-center cursor-pointer">
-                        <User className="mr-2 h-4 w-4" />
-                        <span>Profile</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      className="flex items-center cursor-pointer"
-                      onClick={handleSettingsClick}
-                    >
-                      <Settings className="mr-2 h-4 w-4" />
-                      <span>Settings</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <img src={logoSvg} alt="Openza" className="h-8" />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleSettingsClick}
+                  className="rounded-full hover:bg-gray-100"
+                >
+                  <Settings className="h-5 w-5 text-gray-600" />
+                </Button>
               </div>
+
+              {/* Create Task Button */}
+              <div className="px-2 mb-3">
+                <CreateTaskButton
+                  variant="primary"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                />
+              </div>
+
               <div className="space-y-1">
                 {menuItems.map((item) => (
                   <Button
@@ -145,19 +118,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                       "w-full justify-start",
                       "hover:bg-gray-100"
                     )}
-                    onClick={item.title === 'Settings' ? handleSettingsClick : undefined}
+                    asChild
                   >
-                    {item.title === 'Settings' ? (
-                      <div className="flex items-center w-full">
-                        <item.icon className="mr-2 h-4 w-4" />
-                        {item.title}
-                      </div>
-                    ) : (
-                      <Link to={item.href} className="flex items-center w-full">
-                        <item.icon className="mr-2 h-4 w-4" />
-                        {item.title}
-                      </Link>
-                    )}
+                    <Link to={item.href} className="flex items-center w-full">
+                      <item.icon className="mr-2 h-4 w-4" />
+                      {item.title}
+                    </Link>
                   </Button>
                 ))}
               </div>
@@ -176,10 +142,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         {/* Top Navigation Bar */}
         <header className="bg-white shadow-sm px-4 xl:px-6 py-2 flex justify-between items-center flex-shrink-0">
           <h1 className="text-lg font-bold text-gray-900">{getPageTitle()}</h1>
-          <div className="flex items-center gap-3">
-            <TaskSourceSelector />
-            <CreateTaskButton />
-          </div>
+          <TaskSourceSelector />
         </header>
 
         {/* Main Content */}
