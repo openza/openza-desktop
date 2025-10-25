@@ -53,6 +53,7 @@
     "@doist/todoist-api-typescript": "^4.0.4",
     "@radix-ui/react-dropdown-menu": "^2.1.15",
     "@radix-ui/react-menubar": "^1.1.15",
+    "@radix-ui/react-popover": "^1.1.15",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tabs": "^1.1.12",
     "@tailwindcss/postcss": "^4.1.7",

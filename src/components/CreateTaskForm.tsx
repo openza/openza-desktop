@@ -1,10 +1,11 @@
 import { useState, useMemo } from 'react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
-import { useCreateTask, useProjects, useLabels, useAssignLabelsToTask } from '../hooks/useDatabase';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { useCreateTask, useProjects, useLabels, useAssignLabelsToTask, useCreateLabel } from '../hooks/useDatabase';
 import { CreateTaskData } from '../types/database';
 import { toast } from 'sonner';
-import { Calendar, Flag, ChevronDown, Tag, X } from 'lucide-react';
+import { Calendar, Flag, ChevronDown, Tag, X, MoreHorizontal, Zap } from 'lucide-react';
 
 interface CreateTaskFormProps {
   onClose?: () => void;
@@ -20,13 +21,24 @@ export function CreateTaskForm({ onClose, onSuccess, defaultProjectId }: CreateT
     notes: '',
   });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-  const [showDetails, setShowDetails] = useState(false);
   const [selectedLabelIds, setSelectedLabelIds] = useState<string[]>([]);
+
+  // Individual popover states
+  const [showDatePopover, setShowDatePopover] = useState(false);
+  const [showPriorityPopover, setShowPriorityPopover] = useState(false);
+  const [showLabelsPopover, setShowLabelsPopover] = useState(false);
+  const [showProjectPopover, setShowProjectPopover] = useState(false);
+  const [showMoreOptions, setShowMoreOptions] = useState(false);
+
+  // Label creation
+  const [newLabelName, setNewLabelName] = useState('');
+  const [isCreatingLabel, setIsCreatingLabel] = useState(false);
 
   const { data: projects } = useProjects();
   const { data: labels } = useLabels();
   const createTaskMutation = useCreateTask();
   const assignLabelsMutation = useAssignLabelsToTask();
+  const createLabelMutation = useCreateLabel();
 
   // Find the Inbox project to use as default
   const inboxProject = useMemo(() => {
@@ -106,7 +118,6 @@ export function CreateTaskForm({ onClose, onSuccess, defaultProjectId }: CreateT
       });
       setValidationErrors({});
       setSelectedLabelIds([]);
-      setShowDetails(false);
 
       onSuccess?.();
       onClose?.();
@@ -133,15 +144,57 @@ export function CreateTaskForm({ onClose, onSuccess, defaultProjectId }: CreateT
     }
   };
 
-  const priorityLabels = {
-    1: { label: 'High', color: 'text-red-600' },
-    2: { label: 'Medium', color: 'text-yellow-600' },
-    3: { label: 'Normal', color: 'text-green-600' },
-    4: { label: 'Low', color: 'text-gray-500' },
+  const handleCreateLabel = async () => {
+    if (!newLabelName.trim()) return;
+
+    try {
+      const newLabel = await createLabelMutation.mutateAsync({
+        name: newLabelName,
+        color: '#808080', // Default gray color
+      });
+
+      // Add newly created label to selected labels
+      setSelectedLabelIds(prev => [...prev, newLabel.id]);
+      setNewLabelName('');
+      setIsCreatingLabel(false);
+      toast.success(`Label "${newLabelName}" created!`);
+    } catch (error) {
+      toast.error('Failed to create label');
+    }
   };
 
+  const priorityOptions = [
+    { value: 1, label: 'High', icon: '🔴', color: 'text-red-600', description: 'Do first' },
+    { value: 2, label: 'Medium', icon: '🟡', color: 'text-yellow-600', description: 'Important' },
+    { value: 3, label: 'Normal', icon: '🟢', color: 'text-green-600', description: 'Standard' },
+    { value: 4, label: 'Low', icon: '⚪', color: 'text-gray-500', description: 'When possible' },
+  ];
+
+  const currentPriority = priorityOptions.find(p => p.value === formData.priority) || priorityOptions[1];
+
+  // Date shortcuts
+  const getDateShortcuts = () => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const endOfWeek = new Date(today);
+    endOfWeek.setDate(today.getDate() + (6 - today.getDay()));
+    const nextWeek = new Date(today);
+    nextWeek.setDate(today.getDate() + 7);
+
+    return [
+      { label: 'Today', date: today.toISOString().split('T')[0], subtitle: 'Sat' },
+      { label: 'Tomorrow', date: tomorrow.toISOString().split('T')[0], subtitle: 'Sun' },
+      { label: 'End of week', date: endOfWeek.toISOString().split('T')[0], subtitle: endOfWeek.toLocaleDateString('en-US', { weekday: 'short' }) },
+      { label: 'Next week', date: nextWeek.toISOString().split('T')[0], subtitle: nextWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) },
+    ];
+  };
+
+  const selectedProject = projects?.find(p => p.id === formData.project_id);
+  const selectedLabelsData = labels?.filter(l => selectedLabelIds.includes(l.id)) || [];
+
   return (
-    <Card className="max-w-2xl mx-auto">
+    <Card className="max-w-2xl mx-auto border-slate-200">
       <form onSubmit={handleSubmit} className="p-4">
         {/* Task name input */}
         <input
@@ -149,7 +202,7 @@ export function CreateTaskForm({ onClose, onSuccess, defaultProjectId }: CreateT
           value={formData.title}
           onChange={(e) => handleInputChange('title', e.target.value)}
           placeholder="Task name"
-          className="w-full text-lg font-medium border-none outline-none mb-2 placeholder-gray-400"
+          className="w-full text-lg font-medium border-none outline-none mb-2 placeholder-gray-400 focus:ring-0"
           required
           autoFocus
         />
@@ -160,194 +213,326 @@ export function CreateTaskForm({ onClose, onSuccess, defaultProjectId }: CreateT
           onChange={(e) => handleInputChange('notes', e.target.value)}
           placeholder="Notes (Markdown supported)"
           rows={2}
-          className="w-full text-sm border-none outline-none resize-none placeholder-gray-400 mb-3"
+          className="w-full text-sm border-none outline-none resize-none placeholder-gray-400 mb-3 focus:ring-0"
         />
 
-        {/* Quick actions row */}
+        {/* Quick actions row with popovers */}
         <div className="flex items-center gap-2 mb-3 flex-wrap">
-          {/* Due Date */}
-          <button
-            type="button"
-            onClick={() => setShowDetails(!showDetails)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors"
-          >
-            <Calendar className="h-4 w-4" />
-            {formData.due_date || 'Date'}
-          </button>
+          {/* Date Popover */}
+          <Popover open={showDatePopover} onOpenChange={setShowDatePopover}>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-slate-300 rounded hover:bg-slate-50 transition-colors"
+              >
+                <Calendar className="h-4 w-4" />
+                {formData.due_date || 'Date'}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64 p-2" align="start">
+              <div className="space-y-1">
+                {getDateShortcuts().map((shortcut) => (
+                  <button
+                    key={shortcut.label}
+                    type="button"
+                    onClick={() => {
+                      handleInputChange('due_date', shortcut.date);
+                      setShowDatePopover(false);
+                    }}
+                    className="w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-slate-100 rounded transition-colors text-left"
+                  >
+                    <span className="font-medium text-slate-700">{shortcut.label}</span>
+                    <span className="text-xs text-slate-500">{shortcut.subtitle}</span>
+                  </button>
+                ))}
+                <div className="pt-2 border-t border-slate-200 mt-2">
+                  <input
+                    type="date"
+                    value={formData.due_date || ''}
+                    onChange={(e) => {
+                      handleInputChange('due_date', e.target.value || undefined);
+                      setShowDatePopover(false);
+                    }}
+                    className="w-full px-3 py-2 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
+                {formData.due_date && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleInputChange('due_date', undefined);
+                      setShowDatePopover(false);
+                    }}
+                    className="w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded transition-colors"
+                  >
+                    Clear date
+                  </button>
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
 
-          {/* Priority */}
-          <button
-            type="button"
-            onClick={() => setShowDetails(!showDetails)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors"
-          >
-            <Flag className="h-4 w-4" />
-            <span className={priorityLabels[formData.priority as keyof typeof priorityLabels]?.color}>
-              {priorityLabels[formData.priority as keyof typeof priorityLabels]?.label || 'Medium'}
-            </span>
-          </button>
+          {/* Priority Popover */}
+          <Popover open={showPriorityPopover} onOpenChange={setShowPriorityPopover}>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-slate-300 rounded hover:bg-slate-50 transition-colors"
+              >
+                <Flag className="h-4 w-4" />
+                <span className={currentPriority.color}>{currentPriority.label}</span>
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56 p-1" align="start">
+              <div className="space-y-1">
+                {priorityOptions.map((priority) => (
+                  <button
+                    key={priority.value}
+                    type="button"
+                    onClick={() => {
+                      handleInputChange('priority', priority.value);
+                      setShowPriorityPopover(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-2 text-sm hover:bg-slate-100 rounded transition-colors text-left"
+                  >
+                    <span className="text-lg">{priority.icon}</span>
+                    <div className="flex-1">
+                      <div className={`font-medium ${priority.color}`}>{priority.label}</div>
+                      <div className="text-xs text-slate-500">{priority.description}</div>
+                    </div>
+                    {formData.priority === priority.value && (
+                      <span className="text-amber-600">✓</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
 
-          {/* Labels */}
-          <button
-            type="button"
-            onClick={() => setShowDetails(!showDetails)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors"
-          >
-            <Tag className="h-4 w-4" />
-            {selectedLabelIds.length > 0 ? `${selectedLabelIds.length} label${selectedLabelIds.length > 1 ? 's' : ''}` : 'Labels'}
-          </button>
+          {/* Labels Popover */}
+          <Popover open={showLabelsPopover} onOpenChange={setShowLabelsPopover}>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-slate-300 rounded hover:bg-slate-50 transition-colors"
+              >
+                <Tag className="h-4 w-4" />
+                {selectedLabelIds.length > 0 ? `${selectedLabelIds.length} label${selectedLabelIds.length > 1 ? 's' : ''}` : 'Labels'}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64 p-2" align="start">
+              <div className="space-y-2">
+                {/* Label list */}
+                <div className="max-h-64 overflow-y-auto space-y-1">
+                  {labels && labels.length > 0 ? (
+                    labels.map((label) => (
+                      <button
+                        key={label.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedLabelIds(prev =>
+                            prev.includes(label.id)
+                              ? prev.filter(id => id !== label.id)
+                              : [...prev, label.id]
+                          );
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-100 rounded transition-colors text-left"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedLabelIds.includes(label.id)}
+                          onChange={() => {}}
+                          className="rounded border-slate-300 text-amber-600 focus:ring-amber-500"
+                        />
+                        <span className="flex-1 text-slate-700">{label.name}</span>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="px-3 py-2 text-sm text-slate-500 text-center">
+                      No labels yet
+                    </div>
+                  )}
+                </div>
+
+                {/* Create new label */}
+                <div className="pt-2 border-t border-slate-200">
+                  {isCreatingLabel ? (
+                    <div className="flex gap-1">
+                      <input
+                        type="text"
+                        value={newLabelName}
+                        onChange={(e) => setNewLabelName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleCreateLabel();
+                          } else if (e.key === 'Escape') {
+                            setIsCreatingLabel(false);
+                            setNewLabelName('');
+                          }
+                        }}
+                        placeholder="Label name"
+                        className="flex-1 px-2 py-1 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        autoFocus
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={handleCreateLabel}
+                        className="bg-amber-600 hover:bg-amber-700 text-white"
+                      >
+                        <Zap className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setIsCreatingLabel(true)}
+                      className="w-full px-3 py-2 text-sm text-amber-600 hover:bg-amber-50 rounded transition-colors flex items-center gap-2"
+                    >
+                      <Zap className="h-4 w-4" />
+                      Create new label
+                    </button>
+                  )}
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Project Popover */}
+          <Popover open={showProjectPopover} onOpenChange={setShowProjectPopover}>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-slate-300 rounded hover:bg-slate-50 transition-colors"
+              >
+                <span>📁</span>
+                {selectedProject?.name || 'Inbox'}
+                <ChevronDown className="h-3 w-3" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56 p-1" align="start">
+              <div className="max-h-64 overflow-y-auto space-y-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleInputChange('project_id', undefined);
+                    setShowProjectPopover(false);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-100 rounded transition-colors text-left"
+                >
+                  <span>📥</span>
+                  <span className="flex-1">Inbox</span>
+                  {!formData.project_id && (
+                    <span className="text-amber-600">✓</span>
+                  )}
+                </button>
+                {projects?.filter(p => p.name.toLowerCase() !== 'inbox').map((project) => (
+                  <button
+                    key={project.id}
+                    type="button"
+                    onClick={() => {
+                      handleInputChange('project_id', project.id);
+                      setShowProjectPopover(false);
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-100 rounded transition-colors text-left"
+                  >
+                    <span style={{ color: project.color }}>●</span>
+                    <span className="flex-1">{project.name}</span>
+                    {formData.project_id === project.id && (
+                      <span className="text-amber-600">✓</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
 
           {/* More options toggle */}
           <button
             type="button"
-            onClick={() => setShowDetails(!showDetails)}
-            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+            onClick={() => setShowMoreOptions(!showMoreOptions)}
+            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm border border-slate-300 rounded hover:bg-slate-50 transition-colors"
           >
-            <span>···</span>
+            <MoreHorizontal className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Expandable details section */}
-        {showDetails && (
-          <div className="border-t border-gray-200 pt-3 mb-3 space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              {/* Due Date */}
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">Due Date</label>
-                <input
-                  type="date"
-                  value={formData.due_date || ''}
-                  onChange={(e) => handleInputChange('due_date', e.target.value || undefined)}
-                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-                {validationErrors.due_date && (
-                  <p className="text-xs text-yellow-600 mt-1">⚠️ {validationErrors.due_date}</p>
-                )}
-              </div>
-
-              {/* Defer Until */}
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">Defer Until</label>
-                <input
-                  type="date"
-                  value={formData.defer_until || ''}
-                  onChange={(e) => handleInputChange('defer_until', e.target.value || undefined)}
-                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-                {validationErrors.defer_until && (
-                  <p className="text-xs text-red-600 mt-1">⚠️ {validationErrors.defer_until}</p>
-                )}
-              </div>
-
-              {/* Priority */}
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">Priority</label>
-                <select
-                  value={formData.priority || 2}
-                  onChange={(e) => handleInputChange('priority', parseInt(e.target.value))}
-                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+        {/* Selected labels chips */}
+        {selectedLabelsData.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {selectedLabelsData.map(label => (
+              <span
+                key={label.id}
+                className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-amber-50 text-amber-800 rounded-full border border-amber-200"
+              >
+                {label.name}
+                <button
+                  type="button"
+                  onClick={() => setSelectedLabelIds(prev => prev.filter(id => id !== label.id))}
+                  className="hover:bg-amber-200 rounded-full p-0.5 transition-colors"
                 >
-                  <option value={1}>🔴 High</option>
-                  <option value={2}>🟡 Medium</option>
-                  <option value={3}>🟢 Normal</option>
-                  <option value={4}>⚪ Low</option>
-                </select>
-              </div>
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
 
-              {/* Project - only show if different from default */}
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">Project</label>
-                <select
-                  value={formData.project_id || ''}
-                  onChange={(e) => handleInputChange('project_id', e.target.value || undefined)}
-                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                >
-                  <option value="">Inbox</option>
-                  {projects?.filter(p => p.name.toLowerCase() !== 'inbox').map((project) => (
-                    <option key={project.id} value={project.id}>
-                      {project.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Labels multi-select */}
+        {/* Expandable more options */}
+        {showMoreOptions && (
+          <div className="border-t border-slate-200 pt-3 mb-3">
             <div>
-              <label className="block text-xs text-gray-600 mb-1">Labels</label>
-              <div className="border border-gray-300 rounded p-2 min-h-[2.5rem] focus-within:ring-1 focus-within:ring-blue-500">
-                <div className="flex flex-wrap gap-1">
-                  {selectedLabelIds.map(labelId => {
-                    const label = labels?.find(l => l.id === labelId);
-                    if (!label) return null;
-                    return (
-                      <span
-                        key={labelId}
-                        className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full"
-                      >
-                        {label.name}
-                        <button
-                          type="button"
-                          onClick={() => setSelectedLabelIds(prev => prev.filter(id => id !== labelId))}
-                          className="hover:bg-blue-200 rounded-full p-0.5"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </span>
-                    );
-                  })}
-                  <select
-                    value=""
-                    onChange={(e) => {
-                      if (e.target.value && !selectedLabelIds.includes(e.target.value)) {
-                        setSelectedLabelIds(prev => [...prev, e.target.value]);
-                      }
-                    }}
-                    className="text-xs border-none outline-none bg-transparent flex-1 min-w-[100px]"
-                  >
-                    <option value="">Add label...</option>
-                    {labels?.filter(l => !selectedLabelIds.includes(l.id)).map(label => (
-                      <option key={label.id} value={label.id}>
-                        {label.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+              <label className="block text-xs text-slate-600 mb-1">
+                Defer Until (Someday/Maybe)
+              </label>
+              <input
+                type="date"
+                value={formData.defer_until || ''}
+                onChange={(e) => handleInputChange('defer_until', e.target.value || undefined)}
+                className="w-full px-3 py-2 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+              {validationErrors.defer_until && (
+                <p className="text-xs text-red-600 mt-1">⚠️ {validationErrors.defer_until}</p>
+              )}
+              <p className="text-xs text-slate-500 mt-1">
+                Task will be hidden until this date (GTD tickler file)
+              </p>
             </div>
           </div>
         )}
 
-        {/* Footer with project selector and buttons */}
-        <div className="flex items-center justify-between pt-3 border-t border-gray-200">
-          {/* Project selector */}
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              className="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900"
-            >
-              <span>📥</span>
-              <span>{projects?.find(p => p.id === formData.project_id)?.name || 'Inbox'}</span>
-              <ChevronDown className="h-3 w-3" />
-            </button>
-          </div>
-
-          {/* Action buttons */}
-          <div className="flex gap-2">
-            {onClose && (
-              <Button type="button" variant="outline" onClick={onClose} size="sm">
-                Cancel
-              </Button>
-            )}
+        {/* Footer with action buttons */}
+        <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
+          {onClose && (
             <Button
-              type="submit"
-              disabled={!formData.title.trim() || createTaskMutation.isPending}
+              type="button"
+              variant="outline"
+              onClick={onClose}
               size="sm"
-              className="bg-red-500 hover:bg-red-600 text-white"
+              className="border-slate-300 text-slate-700 hover:bg-slate-50"
             >
-              {createTaskMutation.isPending ? 'Adding...' : 'Add task'}
+              Cancel
             </Button>
-          </div>
+          )}
+          <Button
+            type="submit"
+            disabled={!formData.title.trim() || createTaskMutation.isPending}
+            size="sm"
+            className="bg-amber-600 hover:bg-amber-700 text-white shadow-sm hover:shadow-md transition-all"
+          >
+            {createTaskMutation.isPending ? (
+              <>
+                <Zap className="h-4 w-4 mr-1 animate-pulse" />
+                Adding...
+              </>
+            ) : (
+              <>
+                <Zap className="h-4 w-4 mr-1" />
+                Add task
+              </>
+            )}
+          </Button>
         </div>
       </form>
     </Card>
