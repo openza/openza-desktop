@@ -57,9 +57,9 @@ export function CreateTaskButton({
         size={size}
         className={className}
       >
-        + Create Task
+        + Add Task
       </Button>
-      
+
       <CreateTaskModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
