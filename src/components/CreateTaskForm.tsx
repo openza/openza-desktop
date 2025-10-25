@@ -4,7 +4,7 @@ import { Card } from './ui/card';
 import { useCreateTask, useProjects } from '../hooks/useDatabase';
 import { CreateTaskData } from '../types/database';
 import { toast } from 'sonner';
-import { Info } from 'lucide-react';
+import { Calendar, Flag, ChevronDown } from 'lucide-react';
 
 interface CreateTaskFormProps {
   onClose?: () => void;
@@ -20,7 +20,7 @@ export function CreateTaskForm({ onClose, onSuccess, defaultProjectId }: CreateT
     notes: '',
   });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-  const [notesExpanded, setNotesExpanded] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
 
   const { data: projects } = useProjects();
   const createTaskMutation = useCreateTask();
@@ -84,9 +84,7 @@ export function CreateTaskForm({ onClose, onSuccess, defaultProjectId }: CreateT
       await createTaskMutation.mutateAsync(taskData);
 
       // Show success toast
-      toast.success('Task created successfully!', {
-        description: taskData.project_id ? `Added to ${projects?.find(p => p.id === taskData.project_id)?.name || 'project'}` : 'Added to Inbox',
-      });
+      toast.success('Task created successfully!');
 
       // Reset form
       setFormData({
@@ -96,6 +94,7 @@ export function CreateTaskForm({ onClose, onSuccess, defaultProjectId }: CreateT
         notes: '',
       });
       setValidationErrors({});
+      setShowDetails(false);
 
       onSuccess?.();
       onClose?.();
@@ -122,213 +121,169 @@ export function CreateTaskForm({ onClose, onSuccess, defaultProjectId }: CreateT
     }
   };
 
+  const priorityLabels = {
+    1: { label: 'High', color: 'text-red-600' },
+    2: { label: 'Medium', color: 'text-yellow-600' },
+    3: { label: 'Normal', color: 'text-green-600' },
+    4: { label: 'Low', color: 'text-gray-500' },
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
-      <Card className="p-8 max-w-3xl w-full shadow-xl border-0">
-        <div className="mb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white text-xl font-bold">+</span>
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">Create Task</h2>
-              <p className="text-sm text-gray-500 mt-0.5">
-                Quick capture with rich notes support
-              </p>
-            </div>
-          </div>
-        </div>
+    <Card className="max-w-2xl mx-auto">
+      <form onSubmit={handleSubmit} className="p-4">
+        {/* Task name input */}
+        <input
+          type="text"
+          value={formData.title}
+          onChange={(e) => handleInputChange('title', e.target.value)}
+          placeholder="Task name"
+          className="w-full text-lg font-medium border-none outline-none mb-2 placeholder-gray-400"
+          required
+          autoFocus
+        />
 
-      <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Title */}
-        <div>
-          <label htmlFor="title" className="block text-sm font-medium mb-2 text-gray-700">
-            Title *
-          </label>
-          <input
-            id="title"
-            type="text"
-            value={formData.title}
-            onChange={(e) => handleInputChange('title', e.target.value)}
-            placeholder="What needs to be done?"
-            className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
-              validationErrors.title
-                ? 'border-red-500 focus:ring-red-500 focus:border-transparent'
-                : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'
-            }`}
-            required
-            autoFocus
-          />
-          {validationErrors.title && (
-            <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
-              <span>⚠️</span> {validationErrors.title}
-            </p>
-          )}
-        </div>
+        {/* Notes/Description */}
+        <textarea
+          value={formData.notes || ''}
+          onChange={(e) => handleInputChange('notes', e.target.value)}
+          placeholder="Notes (Markdown supported)"
+          rows={2}
+          className="w-full text-sm border-none outline-none resize-none placeholder-gray-400 mb-3"
+        />
 
-        {/* Notes - Expandable textarea with markdown hint */}
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
-                Notes
-              </label>
-              <div className="group relative">
-                <Info className="h-3.5 w-3.5 text-gray-400 cursor-help" />
-                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10 shadow-lg">
-                  Markdown formatting supported
-                </div>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => setNotesExpanded(!notesExpanded)}
-              className="text-xs text-blue-600 hover:text-blue-700 font-medium"
-            >
-              {notesExpanded ? 'Collapse' : 'Expand'}
-            </button>
-          </div>
-          <div className="relative">
-            <textarea
-              id="notes"
-              value={formData.notes || ''}
-              onChange={(e) => handleInputChange('notes', e.target.value)}
-              placeholder="Additional details, notes, or thoughts... (Markdown supported)"
-              rows={notesExpanded ? 12 : 4}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm resize-none transition-all"
-            />
-          </div>
-          <p className="mt-1.5 text-xs text-gray-500 flex items-center gap-1">
-            <span className="inline-block w-1.5 h-1.5 bg-gray-400 rounded-full"></span>
-            Markdown supported: headers, lists, links, code blocks, etc.
-          </p>
-        </div>
-
-        {/* Two column layout for metadata */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {/* Project */}
-          <div>
-            <label htmlFor="project" className="block text-sm font-medium mb-2 text-gray-700">
-              Project
-            </label>
-            <select
-              id="project"
-              value={formData.project_id || ''}
-              onChange={(e) => handleInputChange('project_id', e.target.value || undefined)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer"
-            >
-              <option value="">No Project (defaults to Inbox)</option>
-              {projects?.map((project) => (
-                <option key={project.id} value={project.id}>
-                  {project.name}
-                </option>
-              ))}
-            </select>
-          </div>
+        {/* Quick actions row */}
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
+          {/* Due Date */}
+          <button
+            type="button"
+            onClick={() => setShowDetails(!showDetails)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+          >
+            <Calendar className="h-4 w-4" />
+            {formData.due_date || 'Date'}
+          </button>
 
           {/* Priority */}
-          <div>
-            <label htmlFor="priority" className="block text-sm font-medium mb-2 text-gray-700">
-              Priority
-            </label>
-            <select
-              id="priority"
-              value={formData.priority || 2}
-              onChange={(e) => handleInputChange('priority', parseInt(e.target.value))}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer"
-            >
-              <option value={1}>🔴 High</option>
-              <option value={2}>🟡 Medium</option>
-              <option value={3}>🟢 Normal</option>
-              <option value={4}>⚪ Low</option>
-            </select>
-          </div>
+          <button
+            type="button"
+            onClick={() => setShowDetails(!showDetails)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+          >
+            <Flag className="h-4 w-4" />
+            <span className={priorityLabels[formData.priority as keyof typeof priorityLabels]?.color}>
+              {priorityLabels[formData.priority as keyof typeof priorityLabels]?.label || 'Medium'}
+            </span>
+          </button>
 
-          {/* Due Date */}
-          <div>
-            <label htmlFor="due_date" className="block text-sm font-medium mb-2 text-gray-700">
-              Due Date
-            </label>
-            <input
-              id="due_date"
-              type="date"
-              value={formData.due_date || ''}
-              onChange={(e) => handleInputChange('due_date', e.target.value || undefined)}
-              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
-                validationErrors.due_date
-                  ? 'border-yellow-500 focus:ring-yellow-500 focus:border-transparent'
-                  : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'
-              }`}
-            />
-            {validationErrors.due_date && (
-              <p className="mt-1.5 text-sm text-yellow-600 flex items-center gap-1">
-                <span>⚠️</span> {validationErrors.due_date}
-              </p>
-            )}
-          </div>
-
-          {/* Defer Until */}
-          <div>
-            <label htmlFor="defer_until" className="block text-sm font-medium mb-2 text-gray-700">
-              Defer Until
-            </label>
-            <input
-              id="defer_until"
-              type="date"
-              value={formData.defer_until || ''}
-              onChange={(e) => handleInputChange('defer_until', e.target.value || undefined)}
-              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
-                validationErrors.defer_until
-                  ? 'border-red-500 focus:ring-red-500 focus:border-transparent'
-                  : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'
-              }`}
-            />
-            {validationErrors.defer_until && (
-              <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
-                <span>⚠️</span> {validationErrors.defer_until}
-              </p>
-            )}
-            {!validationErrors.defer_until && (
-              <p className="mt-1.5 text-xs text-gray-500 flex items-center gap-1">
-                <span className="inline-block w-1.5 h-1.5 bg-gray-400 rounded-full"></span>
-                Hide task until this date (GTD "Someday/Maybe")
-              </p>
-            )}
-          </div>
+          {/* More options toggle */}
+          <button
+            type="button"
+            onClick={() => setShowDetails(!showDetails)}
+            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+          >
+            <span>···</span>
+          </button>
         </div>
 
-        {/* TODO: Add Tags/Labels multi-select component
-             - Requires implementing getLabels() in DatabaseManager
-             - Requires implementing assignLabelsToTask() in DatabaseManager
-             - Requires adding useLabels hook in useDatabase.ts
-             - Will sync with Todoist labels and MS To-Do categories
-        */}
+        {/* Expandable details section */}
+        {showDetails && (
+          <div className="border-t border-gray-200 pt-3 mb-3 space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              {/* Due Date */}
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">Due Date</label>
+                <input
+                  type="date"
+                  value={formData.due_date || ''}
+                  onChange={(e) => handleInputChange('due_date', e.target.value || undefined)}
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+                {validationErrors.due_date && (
+                  <p className="text-xs text-yellow-600 mt-1">⚠️ {validationErrors.due_date}</p>
+                )}
+              </div>
 
-        {/* Submit Buttons */}
-        <div className="flex items-center justify-between pt-6 border-t border-gray-200">
-          <div className="flex items-center gap-2 text-xs text-gray-500">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full font-medium">
-              <span className="inline-block w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
-              Local Task
-            </span>
+              {/* Defer Until */}
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">Defer Until</label>
+                <input
+                  type="date"
+                  value={formData.defer_until || ''}
+                  onChange={(e) => handleInputChange('defer_until', e.target.value || undefined)}
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+                {validationErrors.defer_until && (
+                  <p className="text-xs text-red-600 mt-1">⚠️ {validationErrors.defer_until}</p>
+                )}
+              </div>
+
+              {/* Priority */}
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">Priority</label>
+                <select
+                  value={formData.priority || 2}
+                  onChange={(e) => handleInputChange('priority', parseInt(e.target.value))}
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                >
+                  <option value={1}>🔴 High</option>
+                  <option value={2}>🟡 Medium</option>
+                  <option value={3}>🟢 Normal</option>
+                  <option value={4}>⚪ Low</option>
+                </select>
+              </div>
+
+              {/* Project - only show if different from default */}
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">Project</label>
+                <select
+                  value={formData.project_id || ''}
+                  onChange={(e) => handleInputChange('project_id', e.target.value || undefined)}
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                >
+                  <option value="">Inbox</option>
+                  {projects?.filter(p => p.name.toLowerCase() !== 'inbox').map((project) => (
+                    <option key={project.id} value={project.id}>
+                      {project.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
           </div>
-          <div className="flex gap-3">
+        )}
+
+        {/* Footer with project selector and buttons */}
+        <div className="flex items-center justify-between pt-3 border-t border-gray-200">
+          {/* Project selector */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900"
+            >
+              <span>📥</span>
+              <span>{projects?.find(p => p.id === formData.project_id)?.name || 'Inbox'}</span>
+              <ChevronDown className="h-3 w-3" />
+            </button>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex gap-2">
             {onClose && (
-              <Button type="button" variant="outline" onClick={onClose} className="px-6">
+              <Button type="button" variant="outline" onClick={onClose} size="sm">
                 Cancel
               </Button>
             )}
             <Button
               type="submit"
               disabled={!formData.title.trim() || createTaskMutation.isPending}
-              className="px-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-md"
+              size="sm"
+              className="bg-red-500 hover:bg-red-600 text-white"
             >
-              {createTaskMutation.isPending ? 'Creating...' : 'Create Task'}
+              {createTaskMutation.isPending ? 'Adding...' : 'Add task'}
             </Button>
           </div>
         </div>
       </form>
     </Card>
-    </div>
   );
 }
