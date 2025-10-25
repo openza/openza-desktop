@@ -11,6 +11,7 @@ import ProviderSelection from './components/auth/ProviderSelection'
 import MsToDoCallback from './components/auth/MsToDoCallback'
 import { TaskSourceProvider } from './contexts/TaskSourceContext'
 import ErrorBoundary from './components/ErrorBoundary'
+import { Toaster } from './components/ui/sonner'
 
 const rootRoute = new RootRoute()
 
@@ -151,6 +152,7 @@ function App() {
   return (
     <TaskSourceProvider>
       <RouterProvider router={router} />
+      <Toaster />
     </TaskSourceProvider>
   )
 }
