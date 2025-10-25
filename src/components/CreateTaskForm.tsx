@@ -20,6 +20,7 @@ export function CreateTaskForm({ onClose, onSuccess, defaultProjectId }: CreateT
     notes: '',
   });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [notesExpanded, setNotesExpanded] = useState(false);
 
   const { data: projects } = useProjects();
   const createTaskMutation = useCreateTask();
@@ -122,18 +123,26 @@ export function CreateTaskForm({ onClose, onSuccess, defaultProjectId }: CreateT
   };
 
   return (
-    <Card className="p-6 max-w-2xl">
-      <div className="mb-4">
-        <h2 className="text-xl font-semibold">Create Local Task</h2>
-        <p className="text-sm text-gray-600 mt-1">
-          Create a new task with local features
-        </p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+      <Card className="p-8 max-w-3xl w-full shadow-xl border-0">
+        <div className="mb-6">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <span className="text-white text-xl font-bold">+</span>
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Create Task</h2>
+              <p className="text-sm text-gray-500 mt-0.5">
+                Quick capture with rich notes support
+              </p>
+            </div>
+          </div>
+        </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-5">
         {/* Title */}
         <div>
-          <label htmlFor="title" className="block text-sm font-medium mb-1">
+          <label htmlFor="title" className="block text-sm font-medium mb-2 text-gray-700">
             Title *
           </label>
           <input
@@ -142,56 +151,71 @@ export function CreateTaskForm({ onClose, onSuccess, defaultProjectId }: CreateT
             value={formData.title}
             onChange={(e) => handleInputChange('title', e.target.value)}
             placeholder="What needs to be done?"
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+            className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
               validationErrors.title
-                ? 'border-red-500 focus:ring-red-500'
-                : 'border-gray-300 focus:ring-blue-500'
+                ? 'border-red-500 focus:ring-red-500 focus:border-transparent'
+                : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'
             }`}
             required
+            autoFocus
           />
           {validationErrors.title && (
-            <p className="mt-1 text-sm text-red-600">{validationErrors.title}</p>
+            <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
+              <span>⚠️</span> {validationErrors.title}
+            </p>
           )}
         </div>
 
-        {/* Notes - Large textarea with markdown hint */}
+        {/* Notes - Expandable textarea with markdown hint */}
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <label htmlFor="notes" className="block text-sm font-medium">
-              Notes
-            </label>
-            <div className="group relative">
-              <Info className="h-4 w-4 text-gray-400 cursor-help" />
-              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
-                Markdown formatting supported
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
+                Notes
+              </label>
+              <div className="group relative">
+                <Info className="h-3.5 w-3.5 text-gray-400 cursor-help" />
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10 shadow-lg">
+                  Markdown formatting supported
+                </div>
               </div>
             </div>
+            <button
+              type="button"
+              onClick={() => setNotesExpanded(!notesExpanded)}
+              className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+            >
+              {notesExpanded ? 'Collapse' : 'Expand'}
+            </button>
           </div>
-          <textarea
-            id="notes"
-            value={formData.notes || ''}
-            onChange={(e) => handleInputChange('notes', e.target.value)}
-            placeholder="Additional details, notes, or thoughts... (Markdown supported)"
-            rows={8}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
-          />
-          <p className="mt-1 text-xs text-gray-500">
-            You can use Markdown formatting (headers, lists, links, code blocks, etc.)
+          <div className="relative">
+            <textarea
+              id="notes"
+              value={formData.notes || ''}
+              onChange={(e) => handleInputChange('notes', e.target.value)}
+              placeholder="Additional details, notes, or thoughts... (Markdown supported)"
+              rows={notesExpanded ? 12 : 4}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm resize-none transition-all"
+            />
+          </div>
+          <p className="mt-1.5 text-xs text-gray-500 flex items-center gap-1">
+            <span className="inline-block w-1.5 h-1.5 bg-gray-400 rounded-full"></span>
+            Markdown supported: headers, lists, links, code blocks, etc.
           </p>
         </div>
 
         {/* Two column layout for metadata */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* Project */}
           <div>
-            <label htmlFor="project" className="block text-sm font-medium mb-1">
+            <label htmlFor="project" className="block text-sm font-medium mb-2 text-gray-700">
               Project
             </label>
             <select
               id="project"
               value={formData.project_id || ''}
               onChange={(e) => handleInputChange('project_id', e.target.value || undefined)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer"
             >
               <option value="">No Project (defaults to Inbox)</option>
               {projects?.map((project) => (
@@ -204,14 +228,14 @@ export function CreateTaskForm({ onClose, onSuccess, defaultProjectId }: CreateT
 
           {/* Priority */}
           <div>
-            <label htmlFor="priority" className="block text-sm font-medium mb-1">
+            <label htmlFor="priority" className="block text-sm font-medium mb-2 text-gray-700">
               Priority
             </label>
             <select
               id="priority"
               value={formData.priority || 2}
               onChange={(e) => handleInputChange('priority', parseInt(e.target.value))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer"
             >
               <option value={1}>🔴 High</option>
               <option value={2}>🟡 Medium</option>
@@ -222,7 +246,7 @@ export function CreateTaskForm({ onClose, onSuccess, defaultProjectId }: CreateT
 
           {/* Due Date */}
           <div>
-            <label htmlFor="due_date" className="block text-sm font-medium mb-1">
+            <label htmlFor="due_date" className="block text-sm font-medium mb-2 text-gray-700">
               Due Date
             </label>
             <input
@@ -230,20 +254,22 @@ export function CreateTaskForm({ onClose, onSuccess, defaultProjectId }: CreateT
               type="date"
               value={formData.due_date || ''}
               onChange={(e) => handleInputChange('due_date', e.target.value || undefined)}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
                 validationErrors.due_date
-                  ? 'border-yellow-500 focus:ring-yellow-500'
-                  : 'border-gray-300 focus:ring-blue-500'
+                  ? 'border-yellow-500 focus:ring-yellow-500 focus:border-transparent'
+                  : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'
               }`}
             />
             {validationErrors.due_date && (
-              <p className="mt-1 text-sm text-yellow-600">⚠️ {validationErrors.due_date}</p>
+              <p className="mt-1.5 text-sm text-yellow-600 flex items-center gap-1">
+                <span>⚠️</span> {validationErrors.due_date}
+              </p>
             )}
           </div>
 
           {/* Defer Until */}
           <div>
-            <label htmlFor="defer_until" className="block text-sm font-medium mb-1">
+            <label htmlFor="defer_until" className="block text-sm font-medium mb-2 text-gray-700">
               Defer Until
             </label>
             <input
@@ -251,17 +277,20 @@ export function CreateTaskForm({ onClose, onSuccess, defaultProjectId }: CreateT
               type="date"
               value={formData.defer_until || ''}
               onChange={(e) => handleInputChange('defer_until', e.target.value || undefined)}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
                 validationErrors.defer_until
-                  ? 'border-red-500 focus:ring-red-500'
-                  : 'border-gray-300 focus:ring-blue-500'
+                  ? 'border-red-500 focus:ring-red-500 focus:border-transparent'
+                  : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'
               }`}
             />
             {validationErrors.defer_until && (
-              <p className="mt-1 text-sm text-red-600">{validationErrors.defer_until}</p>
+              <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
+                <span>⚠️</span> {validationErrors.defer_until}
+              </p>
             )}
             {!validationErrors.defer_until && (
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1.5 text-xs text-gray-500 flex items-center gap-1">
+                <span className="inline-block w-1.5 h-1.5 bg-gray-400 rounded-full"></span>
                 Hide task until this date (GTD "Someday/Maybe")
               </p>
             )}
@@ -276,31 +305,30 @@ export function CreateTaskForm({ onClose, onSuccess, defaultProjectId }: CreateT
         */}
 
         {/* Submit Buttons */}
-        <div className="flex justify-end space-x-3 pt-4 border-t">
-          {onClose && (
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
+        <div className="flex items-center justify-between pt-6 border-t border-gray-200">
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full font-medium">
+              <span className="inline-block w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+              Local Task
+            </span>
+          </div>
+          <div className="flex gap-3">
+            {onClose && (
+              <Button type="button" variant="outline" onClick={onClose} className="px-6">
+                Cancel
+              </Button>
+            )}
+            <Button
+              type="submit"
+              disabled={!formData.title.trim() || createTaskMutation.isPending}
+              className="px-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-md"
+            >
+              {createTaskMutation.isPending ? 'Creating...' : 'Create Task'}
             </Button>
-          )}
-          <Button
-            type="submit"
-            disabled={!formData.title.trim() || createTaskMutation.isPending}
-          >
-            {createTaskMutation.isPending ? 'Creating...' : 'Create Task'}
-          </Button>
+          </div>
         </div>
       </form>
-
-      {/* Badge indicator */}
-      <div className="mt-4 pt-4 border-t">
-        <div className="flex items-center justify-between text-xs text-gray-500">
-          <span className="flex items-center space-x-1">
-            <span className="inline-block w-2 h-2 bg-blue-500 rounded-full"></span>
-            <span>Local Task</span>
-          </span>
-          <span>Simplified for quick capture with rich notes support</span>
-        </div>
-      </div>
     </Card>
+    </div>
   );
 }
