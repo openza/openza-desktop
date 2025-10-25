@@ -104,6 +104,12 @@ export class DatabaseManager {
         // Initial schema already applied in initializeDatabase
         console.log('Migration 1: Initial schema');
       }],
+      [2, (db) => {
+        // Add defer_until column for GTD "Someday/Maybe" tickler file concept
+        console.log('Migration 2: Add defer_until column to tasks');
+        db.exec('ALTER TABLE tasks ADD COLUMN defer_until DATE');
+        db.exec('CREATE INDEX IF NOT EXISTS idx_tasks_defer_until ON tasks(defer_until) WHERE defer_until IS NOT NULL');
+      }],
       // Future migrations will be added here
     ]);
   }
@@ -117,10 +123,10 @@ export class DatabaseManager {
       const stmt = this.db.prepare(`
         INSERT INTO tasks (
           id, title, description, project_id, parent_id, priority, status,
-          due_date, due_time, estimated_duration, energy_level, 
-          context, focus_time, notes, source_task, integrations,
+          due_date, due_time, estimated_duration, energy_level,
+          context, focus_time, notes, defer_until, source_task, integrations,
           created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       stmt.run(
@@ -138,6 +144,7 @@ export class DatabaseManager {
         taskData.context || 'work',
         taskData.focus_time || false,
         taskData.notes || null,
+        taskData.defer_until || null,
         taskData.source_task ? JSON.stringify(taskData.source_task) : null,
         taskData.integrations ? JSON.stringify(taskData.integrations) : null,
         now,

@@ -27,7 +27,8 @@ export interface Task extends BaseEntity {
   status: TaskStatus;
   due_date?: string; // ISO date string
   due_time?: string; // HH:MM format
-  
+  defer_until?: string; // ISO date string - GTD "Someday/Maybe" tickler file
+
   // Enhanced local features
   estimated_duration?: number; // minutes
   actual_duration?: number; // minutes
@@ -35,13 +36,13 @@ export interface Task extends BaseEntity {
   context: TaskContext;
   focus_time: boolean;
   notes?: string;
-  
+
   // External integration (wrapper pattern)
   source_task?: ExternalTaskData;
   integrations?: ExternalIntegrations;
-  
+
   completed_at?: string;
-  
+
   // Joined fields (from queries)
   project_name?: string;
   project_color?: string;
@@ -297,6 +298,7 @@ export interface CreateTaskData {
   status?: TaskStatus;
   due_date?: string;
   due_time?: string;
+  defer_until?: string; // GTD "Someday/Maybe" tickler file
   estimated_duration?: number;
   energy_level?: number;
   context?: TaskContext;
@@ -315,6 +317,7 @@ export interface UpdateTaskData {
   status?: TaskStatus;
   due_date?: string;
   due_time?: string;
+  defer_until?: string; // GTD "Someday/Maybe" tickler file
   estimated_duration?: number;
   actual_duration?: number;
   energy_level?: number;

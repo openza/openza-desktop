@@ -2,8 +2,9 @@ import { useState, useMemo } from 'react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { useCreateTask, useProjects } from '../hooks/useDatabase';
-import { CreateTaskData, TaskContext } from '../types/database';
+import { CreateTaskData } from '../types/database';
 import { toast } from 'sonner';
+import { Info } from 'lucide-react';
 
 interface CreateTaskFormProps {
   onClose?: () => void;
@@ -14,12 +15,8 @@ interface CreateTaskFormProps {
 export function CreateTaskForm({ onClose, onSuccess, defaultProjectId }: CreateTaskFormProps) {
   const [formData, setFormData] = useState<CreateTaskData>({
     title: '',
-    description: '',
     project_id: defaultProjectId || '',
     priority: 2,
-    context: 'work' as TaskContext,
-    energy_level: 2,
-    focus_time: false,
     notes: '',
   });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
@@ -51,10 +48,14 @@ export function CreateTaskForm({ onClose, onSuccess, defaultProjectId }: CreateT
       }
     }
 
-    // Validate estimated duration
-    if (formData.estimated_duration !== undefined) {
-      if (formData.estimated_duration <= 0) {
-        errors.estimated_duration = 'Duration must be greater than 0';
+    // Validate defer_until (must be in future if set)
+    if (formData.defer_until) {
+      const deferDate = new Date(formData.defer_until);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (deferDate < today) {
+        errors.defer_until = 'Defer until date must be in the future';
       }
     }
 
@@ -89,12 +90,8 @@ export function CreateTaskForm({ onClose, onSuccess, defaultProjectId }: CreateT
       // Reset form
       setFormData({
         title: '',
-        description: '',
         project_id: defaultProjectId || '',
         priority: 2,
-        context: 'work' as TaskContext,
-        energy_level: 2,
-        focus_time: false,
         notes: '',
       });
       setValidationErrors({});
@@ -129,7 +126,7 @@ export function CreateTaskForm({ onClose, onSuccess, defaultProjectId }: CreateT
       <div className="mb-4">
         <h2 className="text-xl font-semibold">Create Local Task</h2>
         <p className="text-sm text-gray-600 mt-1">
-          Create a new task with enhanced local features
+          Create a new task with local features
         </p>
       </div>
 
@@ -157,22 +154,33 @@ export function CreateTaskForm({ onClose, onSuccess, defaultProjectId }: CreateT
           )}
         </div>
 
-        {/* Description */}
+        {/* Notes - Large textarea with markdown hint */}
         <div>
-          <label htmlFor="description" className="block text-sm font-medium mb-1">
-            Description
-          </label>
+          <div className="flex items-center gap-2 mb-1">
+            <label htmlFor="notes" className="block text-sm font-medium">
+              Notes
+            </label>
+            <div className="group relative">
+              <Info className="h-4 w-4 text-gray-400 cursor-help" />
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
+                Markdown formatting supported
+              </div>
+            </div>
+          </div>
           <textarea
-            id="description"
-            value={formData.description || ''}
-            onChange={(e) => handleInputChange('description', e.target.value)}
-            placeholder="Additional details..."
-            rows={2}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            id="notes"
+            value={formData.notes || ''}
+            onChange={(e) => handleInputChange('notes', e.target.value)}
+            placeholder="Additional details, notes, or thoughts... (Markdown supported)"
+            rows={8}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
           />
+          <p className="mt-1 text-xs text-gray-500">
+            You can use Markdown formatting (headers, lists, links, code blocks, etc.)
+          </p>
         </div>
 
-        {/* Two column layout for smaller fields */}
+        {/* Two column layout for metadata */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Project */}
           <div>
@@ -212,44 +220,6 @@ export function CreateTaskForm({ onClose, onSuccess, defaultProjectId }: CreateT
             </select>
           </div>
 
-          {/* Context */}
-          <div>
-            <label htmlFor="context" className="block text-sm font-medium mb-1">
-              Context
-            </label>
-            <select
-              id="context"
-              value={formData.context || 'work'}
-              onChange={(e) => handleInputChange('context', e.target.value as TaskContext)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="work">💼 Work</option>
-              <option value="personal">👤 Personal</option>
-              <option value="errands">🏃 Errands</option>
-              <option value="home">🏠 Home</option>
-              <option value="office">🏢 Office</option>
-            </select>
-          </div>
-
-          {/* Energy Level */}
-          <div>
-            <label htmlFor="energy" className="block text-sm font-medium mb-1">
-              Energy Level
-            </label>
-            <select
-              id="energy"
-              value={formData.energy_level || 2}
-              onChange={(e) => handleInputChange('energy_level', parseInt(e.target.value))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value={1}>🟢 Low</option>
-              <option value={2}>🟡 Medium</option>
-              <option value={3}>🟠 High</option>
-              <option value={4}>🔴 Peak</option>
-              <option value={5}>⚡ Flow State</option>
-            </select>
-          </div>
-
           {/* Due Date */}
           <div>
             <label htmlFor="due_date" className="block text-sm font-medium mb-1">
@@ -271,59 +241,39 @@ export function CreateTaskForm({ onClose, onSuccess, defaultProjectId }: CreateT
             )}
           </div>
 
-          {/* Estimated Duration */}
+          {/* Defer Until */}
           <div>
-            <label htmlFor="duration" className="block text-sm font-medium mb-1">
-              Est. Duration (minutes)
+            <label htmlFor="defer_until" className="block text-sm font-medium mb-1">
+              Defer Until
             </label>
             <input
-              id="duration"
-              type="number"
-              min="5"
-              step="5"
-              value={formData.estimated_duration || ''}
-              onChange={(e) => handleInputChange('estimated_duration', e.target.value ? parseInt(e.target.value) : undefined)}
-              placeholder="30"
+              id="defer_until"
+              type="date"
+              value={formData.defer_until || ''}
+              onChange={(e) => handleInputChange('defer_until', e.target.value || undefined)}
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
-                validationErrors.estimated_duration
+                validationErrors.defer_until
                   ? 'border-red-500 focus:ring-red-500'
                   : 'border-gray-300 focus:ring-blue-500'
               }`}
             />
-            {validationErrors.estimated_duration && (
-              <p className="mt-1 text-sm text-red-600">{validationErrors.estimated_duration}</p>
+            {validationErrors.defer_until && (
+              <p className="mt-1 text-sm text-red-600">{validationErrors.defer_until}</p>
+            )}
+            {!validationErrors.defer_until && (
+              <p className="mt-1 text-xs text-gray-500">
+                Hide task until this date (GTD "Someday/Maybe")
+              </p>
             )}
           </div>
         </div>
 
-        {/* Focus Time Checkbox */}
-        <div className="flex items-center space-x-2">
-          <input
-            id="focus_time"
-            type="checkbox"
-            checked={formData.focus_time || false}
-            onChange={(e) => handleInputChange('focus_time', e.target.checked)}
-            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-          />
-          <label htmlFor="focus_time" className="text-sm font-medium">
-            🧠 Requires deep focus
-          </label>
-        </div>
-
-        {/* Notes */}
-        <div>
-          <label htmlFor="notes" className="block text-sm font-medium mb-1">
-            Notes
-          </label>
-          <textarea
-            id="notes"
-            value={formData.notes || ''}
-            onChange={(e) => handleInputChange('notes', e.target.value)}
-            placeholder="Any additional notes or thoughts..."
-            rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+        {/* TODO: Add Tags/Labels multi-select component
+             - Requires implementing getLabels() in DatabaseManager
+             - Requires implementing assignLabelsToTask() in DatabaseManager
+             - Requires adding useLabels hook in useDatabase.ts
+             - Will sync with Todoist labels and MS To-Do categories
+        */}
 
         {/* Submit Buttons */}
         <div className="flex justify-end space-x-3 pt-4 border-t">
@@ -332,8 +282,8 @@ export function CreateTaskForm({ onClose, onSuccess, defaultProjectId }: CreateT
               Cancel
             </Button>
           )}
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             disabled={!formData.title.trim() || createTaskMutation.isPending}
           >
             {createTaskMutation.isPending ? 'Creating...' : 'Create Task'}
@@ -348,7 +298,7 @@ export function CreateTaskForm({ onClose, onSuccess, defaultProjectId }: CreateT
             <span className="inline-block w-2 h-2 bg-blue-500 rounded-full"></span>
             <span>Local Task</span>
           </span>
-          <span>Enhanced features: time tracking, energy levels, context</span>
+          <span>Simplified for quick capture with rich notes support</span>
         </div>
       </div>
     </Card>
