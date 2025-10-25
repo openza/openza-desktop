@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { X, ExternalLink, Key, CheckCircle2, AlertCircle, Loader2, Shield, RefreshCw } from "lucide-react";
+import { X, ExternalLink, Key, CheckCircle2, AlertCircle, Loader2, Shield, RefreshCw, Puzzle, Info } from "lucide-react";
 import { createTodoistClient } from '../utils/todoistClient';
 import { msToDoAuthManager } from '../utils/msToDoAuth';
 import { authManager } from '../utils/auth';
@@ -9,15 +9,46 @@ import { useAuth } from '../hooks/useAuth';
 import { secureStorage, STORAGE_KEYS } from '../utils/secureStorage';
 import { openTodoistSettings, openMicrosoftAuthUrl } from '../utils/secureShell';
 import { useQueryClient } from '@tanstack/react-query';
+import packageJson from '../../package.json';
 
 interface SettingsOverlayProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+type SettingsCategory = 'active-provider' | 'todoist' | 'microsoft-todo' | 'about';
+
+const settingsCategories = [
+  {
+    id: 'active-provider' as SettingsCategory,
+    label: 'Active Provider',
+    icon: RefreshCw,
+    description: 'Switch between connected services'
+  },
+  {
+    id: 'todoist' as SettingsCategory,
+    label: 'Todoist',
+    icon: Key,
+    description: 'Connect your Todoist account'
+  },
+  {
+    id: 'microsoft-todo' as SettingsCategory,
+    label: 'Microsoft To-Do',
+    icon: Puzzle,
+    description: 'Connect your Microsoft To-Do account'
+  },
+  {
+    id: 'about' as SettingsCategory,
+    label: 'About',
+    icon: Info,
+    description: 'App information and version'
+  }
+];
+
 const SettingsOverlay = ({ isOpen, onClose }: SettingsOverlayProps) => {
   const queryClient = useQueryClient();
   const { providers, activeProvider } = useAuth();
+  const [selectedCategory, setSelectedCategory] = useState<SettingsCategory>('active-provider');
   const [apiKey, setApiKey] = useState('');
   const [isValidating, setIsValidating] = useState(false);
   const [validationStatus, setValidationStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -234,242 +265,363 @@ const SettingsOverlay = ({ isOpen, onClose }: SettingsOverlayProps) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white shadow-2xl">
+      <Card
+        className="w-full max-w-5xl max-h-[85vh] overflow-hidden bg-white shadow-2xl flex flex-col"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="settings-dialog-title"
+      >
         <CardHeader className="border-b">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-2xl">Settings</CardTitle>
-              <CardDescription>Manage your Openza preferences</CardDescription>
+              <CardTitle id="settings-dialog-title" className="text-2xl">Settings</CardTitle>
+              <CardDescription>Manage your Openza Desktop preferences</CardDescription>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
+            <button
               onClick={onClose}
-              className="rounded-full hover:bg-gray-100"
+              className="rounded-full p-2 bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-600 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-300"
+              aria-label="Close settings"
             >
               <X className="h-5 w-5" />
-            </Button>
+            </button>
           </div>
         </CardHeader>
-        
-        <CardContent className="p-6 space-y-6">
-          {/* Active Provider Section */}
-          {(providers.todoist.isAuthenticated || providers.msToDo.isAuthenticated) && (
-            <div className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <RefreshCw className="h-5 w-5 text-purple-600" />
-                <h3 className="text-lg font-semibold">Active Provider</h3>
-              </div>
-              
-              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                <p className="text-sm text-purple-800 mb-3">
-                  Current active provider: <span className="font-medium">
-                    {activeProvider === 'todoist' ? 'Todoist' : activeProvider === 'msToDo' ? 'Microsoft To-Do' : 'None'}
-                  </span>
-                </p>
-                
-                <div className="flex space-x-2">
-                  {providers.todoist.isAuthenticated && (
-                    <Button
-                      variant={activeProvider === 'todoist' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => handleSetActiveProvider('todoist')}
-                      disabled={activeProvider === 'todoist'}
-                    >
-                      Use Todoist
-                    </Button>
-                  )}
-                  
-                  {providers.msToDo.isAuthenticated && (
-                    <Button
-                      variant={activeProvider === 'msToDo' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => handleSetActiveProvider('msToDo')}
-                      disabled={activeProvider === 'msToDo'}
-                    >
-                      Use Microsoft To-Do
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
 
-          {/* Todoist Integration Section */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Key className="h-5 w-5 text-blue-600" />
-                <h3 className="text-lg font-semibold">Todoist Integration</h3>
-              </div>
-              {isSecureStorageAvailable !== null && (
-                <div className={`flex items-center space-x-1 text-xs px-2 py-1 rounded-full ${
-                  isSecureStorageAvailable 
-                    ? 'bg-green-100 text-green-700' 
-                    : 'bg-yellow-100 text-yellow-700'
-                }`}>
-                  <Shield className="h-3 w-3" />
-                  <span>{isSecureStorageAvailable ? 'Secure Storage' : 'Local Storage'}</span>
-                </div>
-              )}
-            </div>
-            
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-medium text-blue-900 mb-2">How to get your API token:</h4>
-              <ol className="text-sm text-blue-800 space-y-1 ml-4">
-                <li>1. Go to Todoist Settings → Integrations</li>
-                <li>2. Copy your API token</li>
-                <li>3. Paste it below and click Save</li>
-              </ol>
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-3 text-blue-700 border-blue-300 hover:bg-blue-100"
-                onClick={() => openTodoistSettings()}
-              >
-                <ExternalLink className="h-4 w-4 mr-2" />
-                Open Todoist Settings
-              </Button>
-            </div>
+        {/* Sidebar + Content Layout */}
+        <div className="flex flex-1 overflow-hidden">
+          {/* Left Sidebar */}
+          <aside className="w-56 border-r bg-gray-50 overflow-y-auto">
+            <nav className="p-3 space-y-1" role="tablist" aria-label="Settings categories">
+              {settingsCategories.map((category) => {
+                const Icon = category.icon;
+                const isActive = selectedCategory === category.id;
 
-            <div className="space-y-3">
-              <label htmlFor="api-key" className="block text-sm font-medium text-gray-700">
-                API Token
-              </label>
-              <input
-                id="api-key"
-                type="password"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Enter your Todoist API token"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                disabled={isValidating}
-              />
-              
-              {validationStatus !== 'idle' && (
-                <div className={`flex items-center space-x-2 text-sm ${
-                  validationStatus === 'success' ? 'text-green-600' : 'text-red-600'
-                }`}>
-                  {validationStatus === 'success' ? (
-                    <CheckCircle2 className="h-4 w-4" />
-                  ) : (
-                    <AlertCircle className="h-4 w-4" />
-                  )}
-                  <span>{validationMessage}</span>
-                </div>
-              )}
-              
-              {authMethod && (
-                <div className="flex items-center space-x-2 text-sm text-blue-600">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>{authMethod}</span>
-                </div>
-              )}
-              
-              <div className="flex space-x-3">
-                <Button
-                  onClick={handleSave}
-                  disabled={isValidating || !apiKey.trim()}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  {isValidating ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Validating...
-                    </>
-                  ) : (
-                    'Save & Connect'
-                  )}
-                </Button>
-                
-                {currentToken && (
-                  <Button
-                    variant="outline"
-                    onClick={handleDisconnect}
-                    className="text-red-600 border-red-300 hover:bg-red-50"
+                return (
+                  <button
+                    key={category.id}
+                    onClick={() => setSelectedCategory(category.id)}
+                    role="tab"
+                    aria-selected={isActive}
+                    aria-controls={`${category.id}-panel`}
+                    id={`${category.id}-tab`}
+                    className={`
+                      w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors
+                      ${isActive
+                        ? 'bg-blue-100 text-blue-900 font-medium'
+                        : 'text-gray-700 hover:bg-gray-100'
+                      }
+                    `}
                   >
-                    Disconnect
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
+                    <Icon className={`h-5 w-5 ${isActive ? 'text-blue-600' : 'text-gray-500'}`} />
+                    <span>{category.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
+          </aside>
 
-          {/* Microsoft To-Do Integration Section */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <div className="w-5 h-5 bg-blue-600 rounded flex items-center justify-center">
-                  <span className="text-white font-bold text-xs">M</span>
-                </div>
-                <h3 className="text-lg font-semibold">Microsoft To-Do Integration</h3>
-              </div>
-              <div className={`flex items-center space-x-1 text-xs px-2 py-1 rounded-full ${
-                providers.msToDo.isAuthenticated 
-                  ? 'bg-green-100 text-green-700' 
-                  : 'bg-gray-100 text-gray-700'
-              }`}>
-                <span>{providers.msToDo.isAuthenticated ? 'Connected' : 'Not Connected'}</span>
-              </div>
-            </div>
-            
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-medium text-blue-900 mb-2">OAuth 2.0 Authentication:</h4>
-              <div className="text-sm text-blue-800 space-y-1">
-                <p>• Secure authentication with your Microsoft account</p>
-                <p>• Access to all your task lists and categories</p>
-                <p>• No need to manage API tokens manually</p>
-                <p>• Automatic token refresh and management</p>
-              </div>
-              
-              {isMsToDoConfigured === false && (
-                <div className="mt-3 p-3 bg-amber-100 border border-amber-200 rounded">
-                  <p className="text-xs text-amber-800">
-                    <strong>Configuration required:</strong> Please set up Microsoft Graph API credentials in your environment variables.
-                  </p>
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-3">
-              {providers.msToDo.isAuthenticated ? (
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-2 text-sm text-green-600">
-                    <CheckCircle2 className="h-4 w-4" />
-                    <span>Connected to Microsoft To-Do</span>
+          {/* Right Content Area */}
+          <div className="flex-1 overflow-y-auto">
+            <div
+              role="tabpanel"
+              id={`${selectedCategory}-panel`}
+              aria-labelledby={`${selectedCategory}-tab`}
+              className="p-5"
+            >
+              {selectedCategory === 'active-provider' && (
+                <div className="space-y-4">
+                  <div className="mb-3">
+                    <h2 className="text-xl font-semibold text-gray-900 mb-0.5">Active Provider</h2>
+                    <p className="text-sm text-gray-600">Switch between connected services</p>
                   </div>
-                  
-                  <Button
-                    variant="outline"
-                    onClick={handleMsToDoDisconnect}
-                    className="text-red-600 border-red-300 hover:bg-red-50"
-                  >
-                    Disconnect Microsoft To-Do
-                  </Button>
+
+                  {(providers.todoist.isAuthenticated || providers.msToDo.isAuthenticated) ? (
+                    <div className="space-y-3">
+                      <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                        <p className="text-sm text-purple-800 mb-3">
+                          Current active provider: <span className="font-medium">
+                            {activeProvider === 'todoist' ? 'Todoist' : activeProvider === 'msToDo' ? 'Microsoft To-Do' : 'None'}
+                          </span>
+                        </p>
+
+                        <div className="flex space-x-2">
+                          {providers.todoist.isAuthenticated && (
+                            <Button
+                              variant={activeProvider === 'todoist' ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => handleSetActiveProvider('todoist')}
+                              disabled={activeProvider === 'todoist'}
+                            >
+                              Use Todoist
+                            </Button>
+                          )}
+
+                          {providers.msToDo.isAuthenticated && (
+                            <Button
+                              variant={activeProvider === 'msToDo' ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => handleSetActiveProvider('msToDo')}
+                              disabled={activeProvider === 'msToDo'}
+                            >
+                              Use Microsoft To-Do
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                      <p className="text-sm text-amber-800">
+                        No providers connected yet. Please connect to Todoist or Microsoft To-Do first.
+                      </p>
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <Button
-                  onClick={handleMsToDoConnect}
-                  disabled={isMsToDoConfigured !== true}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Connect Microsoft To-Do
-                </Button>
+              )}
+
+              {selectedCategory === 'todoist' && (
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <h2 className="text-xl font-semibold text-gray-900 mb-0.5">Todoist Integration</h2>
+                      <p className="text-sm text-gray-600">Connect your Todoist account</p>
+                    </div>
+                    {isSecureStorageAvailable !== null && (
+                      <div className={`flex items-center space-x-1 text-xs px-2 py-1 rounded-full ${
+                        isSecureStorageAvailable
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-yellow-100 text-yellow-700'
+                      }`}>
+                        <Shield className="h-3 w-3" />
+                        <span>{isSecureStorageAvailable ? 'Secure Storage' : 'Local Storage'}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <h4 className="font-medium text-blue-900 mb-1.5 text-sm">How to get your API token:</h4>
+                      <ol className="text-sm text-blue-800 space-y-0.5 ml-4">
+                        <li>1. Go to Todoist Settings → Integrations</li>
+                        <li>2. Copy your API token</li>
+                        <li>3. Paste it below and click Save</li>
+                      </ol>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-2 text-blue-700 border-blue-300 hover:bg-blue-100"
+                        onClick={() => openTodoistSettings()}
+                      >
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Open Todoist Settings
+                      </Button>
+                    </div>
+
+                    <div className="space-y-2.5">
+                      <label htmlFor="api-key" className="block text-sm font-medium text-gray-700">
+                        API Token
+                      </label>
+                      <input
+                        id="api-key"
+                        type="password"
+                        value={apiKey}
+                        onChange={(e) => setApiKey(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder="Enter your Todoist API token"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        disabled={isValidating}
+                      />
+
+                      {validationStatus !== 'idle' && (
+                        <div className={`flex items-center space-x-2 text-sm ${
+                          validationStatus === 'success' ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          {validationStatus === 'success' ? (
+                            <CheckCircle2 className="h-4 w-4" />
+                          ) : (
+                            <AlertCircle className="h-4 w-4" />
+                          )}
+                          <span>{validationMessage}</span>
+                        </div>
+                      )}
+
+                      {authMethod && (
+                        <div className="flex items-center space-x-2 text-sm text-blue-600">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>{authMethod}</span>
+                        </div>
+                      )}
+
+                      <div className="flex space-x-3">
+                        {currentToken ? (
+                          <>
+                            <Button
+                              onClick={handleSave}
+                              disabled={isValidating || !apiKey.trim()}
+                              className="bg-blue-600 hover:bg-blue-700"
+                            >
+                              {isValidating ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  Validating...
+                                </>
+                              ) : (
+                                'Update Token'
+                              )}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              onClick={handleDisconnect}
+                              className="text-red-600 border-red-300 hover:bg-red-50"
+                            >
+                              Disconnect
+                            </Button>
+                          </>
+                        ) : (
+                          <Button
+                            onClick={handleSave}
+                            disabled={isValidating || !apiKey.trim()}
+                            className="bg-blue-600 hover:bg-blue-700"
+                          >
+                            {isValidating ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Validating...
+                              </>
+                            ) : (
+                              'Save & Connect'
+                            )}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {selectedCategory === 'microsoft-todo' && (
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <h2 className="text-xl font-semibold text-gray-900 mb-0.5">Microsoft To-Do Integration</h2>
+                      <p className="text-sm text-gray-600">Connect your Microsoft To-Do account</p>
+                    </div>
+                    <div className={`flex items-center space-x-1 text-xs px-2 py-1 rounded-full ${
+                      providers.msToDo.isAuthenticated
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-gray-100 text-gray-700'
+                    }`}>
+                      <span>{providers.msToDo.isAuthenticated ? 'Connected' : 'Not Connected'}</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <h4 className="font-medium text-blue-900 mb-1.5 text-sm">OAuth 2.0 Authentication:</h4>
+                      <div className="text-sm text-blue-800 space-y-0.5">
+                        <p>• Secure authentication with your Microsoft account</p>
+                        <p>• Access to all your task lists and categories</p>
+                        <p>• No need to manage API tokens manually</p>
+                        <p>• Automatic token refresh and management</p>
+                      </div>
+
+                      {isMsToDoConfigured === false && (
+                        <div className="mt-3 p-3 bg-amber-100 border border-amber-200 rounded">
+                          <p className="text-xs text-amber-800">
+                            <strong>Configuration required:</strong> Please set up Microsoft Graph API credentials in your environment variables.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-3">
+                      {providers.msToDo.isAuthenticated ? (
+                        <div className="space-y-3">
+                          <div className="flex items-center space-x-2 text-sm text-green-600">
+                            <CheckCircle2 className="h-4 w-4" />
+                            <span>Connected to Microsoft To-Do</span>
+                          </div>
+
+                          <Button
+                            variant="outline"
+                            onClick={handleMsToDoDisconnect}
+                            className="text-red-600 border-red-300 hover:bg-red-50"
+                          >
+                            Disconnect Microsoft To-Do
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          onClick={handleMsToDoConnect}
+                          disabled={isMsToDoConfigured !== true}
+                          className="bg-blue-600 hover:bg-blue-700"
+                        >
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          Connect Microsoft To-Do
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {selectedCategory === 'about' && (
+                <div className="space-y-4">
+                  <div className="mb-4">
+                    <h2 className="text-xl font-semibold text-gray-900">Openza Desktop</h2>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="space-y-3">
+                      <div>
+                        <span className="text-sm font-medium text-gray-700">Version</span>
+                        <p className="text-sm text-gray-900 mt-0.5">{packageJson.version}</p>
+                      </div>
+
+                      <div>
+                        <span className="text-sm font-medium text-gray-700">License</span>
+                        <p className="text-sm text-gray-900 mt-0.5">MIT (Open Source)</p>
+                      </div>
+
+                      <div>
+                        <span className="text-sm font-medium text-gray-700">About</span>
+                        <p className="text-sm text-gray-600 mt-1 leading-relaxed">
+                          Openza Desktop is an <strong>open-source</strong>, <strong>local-first</strong> desktop application for managing tasks
+                          from multiple sources. Your data stays on your device with secure, encrypted storage. Connect to Todoist,
+                          Microsoft To-Do, or use the built-in local database while maintaining complete control over your information.
+                        </p>
+                      </div>
+
+                      <div>
+                        <span className="text-sm font-medium text-gray-700">Links</span>
+                        <div className="flex flex-col gap-1 mt-1">
+                          <a
+                            href="https://github.com/openza/openza-desktop"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-blue-600 hover:text-blue-700 hover:underline flex items-center gap-1"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            GitHub Repository
+                          </a>
+                          <a
+                            href="https://github.com/openza/openza-desktop/issues"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-blue-600 hover:text-blue-700 hover:underline flex items-center gap-1"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            Report Issues
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           </div>
-
-          {/* App Information Section */}
-          <div className="border-t pt-6 space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">About Openza</h3>
-            <div className="text-sm text-gray-600 space-y-2">
-              <p>Version: 1.0.0</p>
-              <p>A beautiful desktop client for Todoist built with modern web technologies.</p>
-            </div>
-          </div>
-        </CardContent>
+        </div>
       </Card>
     </div>
   );
