@@ -41,6 +41,31 @@ export function initializeDatabaseHandlers() {
     return dbManager.getProjects(filters || {});
   });
 
+  // Label operations
+  ipcMain.handle('db:createLabel', async (event, labelData) => {
+    return dbManager.createLabel(labelData);
+  });
+
+  ipcMain.handle('db:getLabelById', async (event, id) => {
+    return dbManager.getLabelById(id);
+  });
+
+  ipcMain.handle('db:getLabels', async (event) => {
+    return dbManager.getLabels();
+  });
+
+  ipcMain.handle('db:assignLabelsToTask', async (event, taskId, labelIds) => {
+    return dbManager.assignLabelsToTask(taskId, labelIds);
+  });
+
+  ipcMain.handle('db:removeLabelsFromTask', async (event, taskId, labelIds) => {
+    return dbManager.removeLabelsFromTask(taskId, labelIds);
+  });
+
+  ipcMain.handle('db:getTaskLabels', async (event, taskId) => {
+    return dbManager.getTaskLabels(taskId);
+  });
+
   // Integration operations
   ipcMain.handle('db:updateTaskIntegration', async (event, taskId, integration, data) => {
     return dbManager.updateTaskIntegration(taskId, integration, data);

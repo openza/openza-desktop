@@ -1,10 +1,10 @@
 import { useState, useMemo } from 'react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
-import { useCreateTask, useProjects } from '../hooks/useDatabase';
+import { useCreateTask, useProjects, useLabels, useAssignLabelsToTask } from '../hooks/useDatabase';
 import { CreateTaskData } from '../types/database';
 import { toast } from 'sonner';
-import { Calendar, Flag, ChevronDown } from 'lucide-react';
+import { Calendar, Flag, ChevronDown, Tag, X } from 'lucide-react';
 
 interface CreateTaskFormProps {
   onClose?: () => void;
@@ -21,9 +21,12 @@ export function CreateTaskForm({ onClose, onSuccess, defaultProjectId }: CreateT
   });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [showDetails, setShowDetails] = useState(false);
+  const [selectedLabelIds, setSelectedLabelIds] = useState<string[]>([]);
 
   const { data: projects } = useProjects();
+  const { data: labels } = useLabels();
   const createTaskMutation = useCreateTask();
+  const assignLabelsMutation = useAssignLabelsToTask();
 
   // Find the Inbox project to use as default
   const inboxProject = useMemo(() => {
@@ -81,7 +84,15 @@ export function CreateTaskForm({ onClose, onSuccess, defaultProjectId }: CreateT
         project_id: formData.project_id || inboxProject?.id || undefined,
       };
 
-      await createTaskMutation.mutateAsync(taskData);
+      const task = await createTaskMutation.mutateAsync(taskData);
+
+      // Assign labels to the task if any selected
+      if (selectedLabelIds.length > 0) {
+        await assignLabelsMutation.mutateAsync({
+          taskId: task.id,
+          labelIds: selectedLabelIds
+        });
+      }
 
       // Show success toast
       toast.success('Task created successfully!');
@@ -94,6 +105,7 @@ export function CreateTaskForm({ onClose, onSuccess, defaultProjectId }: CreateT
         notes: '',
       });
       setValidationErrors({});
+      setSelectedLabelIds([]);
       setShowDetails(false);
 
       onSuccess?.();
@@ -175,6 +187,16 @@ export function CreateTaskForm({ onClose, onSuccess, defaultProjectId }: CreateT
             </span>
           </button>
 
+          {/* Labels */}
+          <button
+            type="button"
+            onClick={() => setShowDetails(!showDetails)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+          >
+            <Tag className="h-4 w-4" />
+            {selectedLabelIds.length > 0 ? `${selectedLabelIds.length} label${selectedLabelIds.length > 1 ? 's' : ''}` : 'Labels'}
+          </button>
+
           {/* More options toggle */}
           <button
             type="button"
@@ -247,6 +269,50 @@ export function CreateTaskForm({ onClose, onSuccess, defaultProjectId }: CreateT
                     </option>
                   ))}
                 </select>
+              </div>
+            </div>
+
+            {/* Labels multi-select */}
+            <div>
+              <label className="block text-xs text-gray-600 mb-1">Labels</label>
+              <div className="border border-gray-300 rounded p-2 min-h-[2.5rem] focus-within:ring-1 focus-within:ring-blue-500">
+                <div className="flex flex-wrap gap-1">
+                  {selectedLabelIds.map(labelId => {
+                    const label = labels?.find(l => l.id === labelId);
+                    if (!label) return null;
+                    return (
+                      <span
+                        key={labelId}
+                        className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full"
+                      >
+                        {label.name}
+                        <button
+                          type="button"
+                          onClick={() => setSelectedLabelIds(prev => prev.filter(id => id !== labelId))}
+                          className="hover:bg-blue-200 rounded-full p-0.5"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
+                    );
+                  })}
+                  <select
+                    value=""
+                    onChange={(e) => {
+                      if (e.target.value && !selectedLabelIds.includes(e.target.value)) {
+                        setSelectedLabelIds(prev => [...prev, e.target.value]);
+                      }
+                    }}
+                    className="text-xs border-none outline-none bg-transparent flex-1 min-w-[100px]"
+                  >
+                    <option value="">Add label...</option>
+                    {labels?.filter(l => !selectedLabelIds.includes(l.id)).map(label => (
+                      <option key={label.id} value={label.id}>
+                        {label.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
           </div>

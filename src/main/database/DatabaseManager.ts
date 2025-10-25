@@ -15,6 +15,7 @@ import {
   UpdateTaskData,
   CreateProjectData,
   CreateTimeEntryData,
+  CreateLabelData,
   TaskFilters,
   ProjectFilters,
   DatabaseResult,
@@ -585,6 +586,154 @@ export class DatabaseManager {
 
   private generateId(prefix: string = 'task_'): string {
     return prefix + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  }
+
+  private mapRowToLabel(row: any): Label {
+    return {
+      id: row.id,
+      name: row.name,
+      color: row.color,
+      description: row.description,
+      sort_order: row.sort_order,
+      integrations: row.integrations ? JSON.parse(row.integrations) : undefined,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+    };
+  }
+
+  // Label operations
+  createLabel(labelData: CreateLabelData): DatabaseResult<Label> {
+    try {
+      const id = labelData.id || this.generateId('label_');
+      const now = new Date().toISOString();
+
+      const stmt = this.db.prepare(`
+        INSERT INTO labels (
+          id, name, color, description, sort_order, integrations,
+          created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      stmt.run(
+        id,
+        labelData.name,
+        labelData.color || '#808080',
+        labelData.description || null,
+        labelData.sort_order || 0,
+        labelData.integrations ? JSON.stringify(labelData.integrations) : null,
+        now,
+        now
+      );
+
+      const label = this.getLabelById(id);
+      return { success: true, data: label.data!, changes: 1 };
+    } catch (error) {
+      console.error('Error creating label:', error);
+      return { success: false, error: (error as Error).message };
+    }
+  }
+
+  getLabelById(id: string): DatabaseResult<Label> {
+    try {
+      const stmt = this.db.prepare('SELECT * FROM labels WHERE id = ?');
+      const row = stmt.get(id) as any;
+
+      if (!row) {
+        return { success: false, error: 'Label not found' };
+      }
+
+      const label = this.mapRowToLabel(row);
+      return { success: true, data: label };
+    } catch (error) {
+      console.error('Error getting label:', error);
+      return { success: false, error: (error as Error).message };
+    }
+  }
+
+  getLabels(): DatabaseResult<Label[]> {
+    try {
+      const stmt = this.db.prepare('SELECT * FROM labels ORDER BY sort_order ASC, name ASC');
+      const rows = stmt.all() as any[];
+
+      const labels = rows.map(row => this.mapRowToLabel(row));
+      return { success: true, data: labels };
+    } catch (error) {
+      console.error('Error getting labels:', error);
+      return { success: false, error: (error as Error).message };
+    }
+  }
+
+  assignLabelsToTask(taskId: string, labelIds: string[]): DatabaseResult<boolean> {
+    try {
+      // First, remove all existing labels for this task
+      const deleteStmt = this.db.prepare('DELETE FROM task_labels WHERE task_id = ?');
+      deleteStmt.run(taskId);
+
+      // Then insert the new labels
+      if (labelIds.length > 0) {
+        const insertStmt = this.db.prepare('INSERT INTO task_labels (task_id, label_id) VALUES (?, ?)');
+        const transaction = this.db.transaction((taskId: string, labelIds: string[]) => {
+          for (const labelId of labelIds) {
+            insertStmt.run(taskId, labelId);
+          }
+        });
+        transaction(taskId, labelIds);
+      }
+
+      // Update task updated_at timestamp
+      const updateStmt = this.db.prepare('UPDATE tasks SET updated_at = ? WHERE id = ?');
+      updateStmt.run(new Date().toISOString(), taskId);
+
+      return { success: true, data: true, changes: labelIds.length };
+    } catch (error) {
+      console.error('Error assigning labels to task:', error);
+      return { success: false, error: (error as Error).message };
+    }
+  }
+
+  removeLabelsFromTask(taskId: string, labelIds: string[]): DatabaseResult<boolean> {
+    try {
+      if (labelIds.length === 0) {
+        return { success: true, data: true, changes: 0 };
+      }
+
+      const placeholders = labelIds.map(() => '?').join(',');
+      const stmt = this.db.prepare(`
+        DELETE FROM task_labels
+        WHERE task_id = ? AND label_id IN (${placeholders})
+      `);
+
+      const result = stmt.run(taskId, ...labelIds);
+
+      // Update task updated_at timestamp
+      const updateStmt = this.db.prepare('UPDATE tasks SET updated_at = ? WHERE id = ?');
+      updateStmt.run(new Date().toISOString(), taskId);
+
+      return { success: true, data: true, changes: result.changes };
+    } catch (error) {
+      console.error('Error removing labels from task:', error);
+      return { success: false, error: (error as Error).message };
+    }
+  }
+
+  getTaskLabels(taskId: string): DatabaseResult<Label[]> {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT l.*
+        FROM labels l
+        INNER JOIN task_labels tl ON l.id = tl.label_id
+        WHERE tl.task_id = ?
+        ORDER BY l.sort_order ASC, l.name ASC
+      `);
+
+      const rows = stmt.all(taskId) as any[];
+      const labels = rows.map(row => this.mapRowToLabel(row));
+
+      return { success: true, data: labels };
+    } catch (error) {
+      console.error('Error getting task labels:', error);
+      return { success: false, error: (error as Error).message };
+    }
   }
 
   // Database maintenance

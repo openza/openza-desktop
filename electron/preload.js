@@ -55,6 +55,14 @@ contextBridge.exposeInMainWorld('electron', {
         getProjectById: (id) => ipcRenderer.invoke('db:getProjectById', id),
         getProjects: (filters) => ipcRenderer.invoke('db:getProjects', filters || {}),
 
+        // Label operations
+        createLabel: (labelData) => ipcRenderer.invoke('db:createLabel', labelData),
+        getLabelById: (id) => ipcRenderer.invoke('db:getLabelById', id),
+        getLabels: () => ipcRenderer.invoke('db:getLabels'),
+        assignLabelsToTask: (taskId, labelIds) => ipcRenderer.invoke('db:assignLabelsToTask', taskId, labelIds),
+        removeLabelsFromTask: (taskId, labelIds) => ipcRenderer.invoke('db:removeLabelsFromTask', taskId, labelIds),
+        getTaskLabels: (taskId) => ipcRenderer.invoke('db:getTaskLabels', taskId),
+
         // Integration operations
         updateTaskIntegration: (taskId, integration, data) => 
             ipcRenderer.invoke('db:updateTaskIntegration', taskId, integration, data),

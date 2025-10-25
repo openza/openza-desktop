@@ -350,6 +350,15 @@ export interface CreateTimeEntryData {
   focus_quality?: number;
 }
 
+export interface CreateLabelData {
+  id?: string;
+  name: string;
+  color?: string;
+  description?: string;
+  sort_order?: number;
+  integrations?: ExternalIntegrations;
+}
+
 // Database operation result types
 export interface DatabaseResult<T = any> {
   success: boolean;

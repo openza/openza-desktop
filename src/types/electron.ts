@@ -7,6 +7,7 @@ import {
   CreateTaskData,
   UpdateTaskData,
   CreateProjectData,
+  CreateLabelData,
   CreateTimeEntryData,
   TaskFilters,
   ProjectFilters,
@@ -140,6 +141,14 @@ export interface ElectronAPI {
     createProject: (projectData: CreateProjectData) => Promise<DatabaseResult<Project>>;
     getProjectById: (id: string) => Promise<DatabaseResult<Project>>;
     getProjects: (filters?: ProjectFilters) => Promise<DatabaseResult<Project[]>>;
+
+    // Label operations
+    createLabel: (labelData: CreateLabelData) => Promise<DatabaseResult<Label>>;
+    getLabelById: (id: string) => Promise<DatabaseResult<Label>>;
+    getLabels: () => Promise<DatabaseResult<Label[]>>;
+    assignLabelsToTask: (taskId: string, labelIds: string[]) => Promise<DatabaseResult<boolean>>;
+    removeLabelsFromTask: (taskId: string, labelIds: string[]) => Promise<DatabaseResult<boolean>>;
+    getTaskLabels: (taskId: string) => Promise<DatabaseResult<Label[]>>;
 
     // Integration operations
     updateTaskIntegration: (taskId: string, integration: string, data: any) => Promise<DatabaseResult<Task>>;

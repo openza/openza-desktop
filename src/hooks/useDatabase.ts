@@ -4,9 +4,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Task,
   Project,
+  Label,
   CreateTaskData,
   UpdateTaskData,
   CreateProjectData,
+  CreateLabelData,
   TaskFilters,
   ProjectFilters,
   TaskStatistics,
@@ -18,6 +20,9 @@ export const QUERY_KEYS = {
   task: (id: string) => ['task', id],
   projects: (filters?: ProjectFilters) => ['projects', filters],
   project: (id: string) => ['project', id],
+  labels: () => ['labels'],
+  label: (id: string) => ['label', id],
+  taskLabels: (taskId: string) => ['task', taskId, 'labels'],
   statistics: () => ['statistics'],
   search: (term: string) => ['search', term],
   todayTasks: () => ['tasks', 'today'],
@@ -158,7 +163,7 @@ export function useProject(id: string) {
 
 export function useCreateProject() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (projectData: CreateProjectData) => {
       const result = await window.electron.database.createProject(projectData);
@@ -172,6 +177,115 @@ export function useCreateProject() {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       // Add to specific project cache
       queryClient.setQueryData(QUERY_KEYS.project(newProject.id), newProject);
+    },
+  });
+}
+
+// Label hooks
+export function useLabels() {
+  return useQuery({
+    queryKey: QUERY_KEYS.labels(),
+    queryFn: async () => {
+      const result = await window.electron.database.getLabels();
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to fetch labels');
+      }
+      return result.data!;
+    },
+    staleTime: Infinity,
+  });
+}
+
+export function useLabel(id: string) {
+  return useQuery({
+    queryKey: QUERY_KEYS.label(id),
+    queryFn: async () => {
+      const result = await window.electron.database.getLabelById(id);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to fetch label');
+      }
+      return result.data!;
+    },
+    staleTime: Infinity,
+    enabled: !!id,
+  });
+}
+
+export function useCreateLabel() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (labelData: CreateLabelData) => {
+      const result = await window.electron.database.createLabel(labelData);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to create label');
+      }
+      return result.data!;
+    },
+    onSuccess: (newLabel) => {
+      // Invalidate all label lists
+      queryClient.invalidateQueries({ queryKey: ['labels'] });
+      // Add to specific label cache
+      queryClient.setQueryData(QUERY_KEYS.label(newLabel.id), newLabel);
+    },
+  });
+}
+
+export function useTaskLabels(taskId: string) {
+  return useQuery({
+    queryKey: QUERY_KEYS.taskLabels(taskId),
+    queryFn: async () => {
+      const result = await window.electron.database.getTaskLabels(taskId);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to fetch task labels');
+      }
+      return result.data!;
+    },
+    staleTime: Infinity,
+    enabled: !!taskId,
+  });
+}
+
+export function useAssignLabelsToTask() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ taskId, labelIds }: { taskId: string; labelIds: string[] }) => {
+      const result = await window.electron.database.assignLabelsToTask(taskId, labelIds);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to assign labels to task');
+      }
+      return { taskId, labelIds };
+    },
+    onSuccess: ({ taskId }) => {
+      // Invalidate task labels cache
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.taskLabels(taskId) });
+      // Invalidate specific task cache
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.task(taskId) });
+      // Invalidate all task lists
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    },
+  });
+}
+
+export function useRemoveLabelsFromTask() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ taskId, labelIds }: { taskId: string; labelIds: string[] }) => {
+      const result = await window.electron.database.removeLabelsFromTask(taskId, labelIds);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to remove labels from task');
+      }
+      return { taskId, labelIds };
+    },
+    onSuccess: ({ taskId }) => {
+      // Invalidate task labels cache
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.taskLabels(taskId) });
+      // Invalidate specific task cache
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.task(taskId) });
+      // Invalidate all task lists
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
     },
   });
 }
