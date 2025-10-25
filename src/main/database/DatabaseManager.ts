@@ -175,6 +175,13 @@ export class DatabaseManager {
       }
 
       const task = this.mapRowToTask(row);
+
+      // Fetch labels for this task
+      const labelsResult = this.getTaskLabels(task.id);
+      if (labelsResult.success) {
+        task.labels = labelsResult.data;
+      }
+
       return { success: true, data: task };
     } catch (error) {
       console.error('Error getting task:', error);
@@ -281,8 +288,17 @@ export class DatabaseManager {
 
       const stmt = this.db.prepare(query);
       const rows = stmt.all(...params) as any[];
-      
+
       const tasks = rows.map(row => this.mapRowToTask(row));
+
+      // Fetch labels for each task
+      tasks.forEach(task => {
+        const labelsResult = this.getTaskLabels(task.id);
+        if (labelsResult.success) {
+          task.labels = labelsResult.data;
+        }
+      });
+
       return { success: true, data: tasks };
     } catch (error) {
       console.error('Error getting tasks:', error);
@@ -618,8 +634,8 @@ export class DatabaseManager {
       const stmt = this.db.prepare(`
         INSERT INTO labels (
           id, name, color, description, sort_order, integrations,
-          created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)
       `);
 
       stmt.run(
@@ -629,7 +645,6 @@ export class DatabaseManager {
         labelData.description || null,
         labelData.sort_order || 0,
         labelData.integrations ? JSON.stringify(labelData.integrations) : null,
-        now,
         now
       );
 

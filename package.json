@@ -51,6 +51,7 @@
     "@azure/msal-browser": "^4.15.0",
     "@azure/msal-node": "^3.6.3",
     "@doist/todoist-api-typescript": "^4.0.4",
+    "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-dropdown-menu": "^2.1.15",
     "@radix-ui/react-menubar": "^1.1.15",
     "@radix-ui/react-popover": "^1.1.15",

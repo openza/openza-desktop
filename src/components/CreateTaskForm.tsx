@@ -148,10 +148,18 @@ export function CreateTaskForm({ onClose, onSuccess, defaultProjectId }: CreateT
     if (!newLabelName.trim()) return;
 
     try {
+      console.log('Creating label:', newLabelName);
       const newLabel = await createLabelMutation.mutateAsync({
         name: newLabelName,
         color: '#808080', // Default gray color
       });
+
+      console.log('Label created:', newLabel);
+
+      // Verify the label has an ID
+      if (!newLabel || !newLabel.id) {
+        throw new Error('Label created but no ID returned');
+      }
 
       // Add newly created label to selected labels
       setSelectedLabelIds(prev => [...prev, newLabel.id]);
@@ -159,7 +167,10 @@ export function CreateTaskForm({ onClose, onSuccess, defaultProjectId }: CreateT
       setIsCreatingLabel(false);
       toast.success(`Label "${newLabelName}" created!`);
     } catch (error) {
-      toast.error('Failed to create label');
+      console.error('Label creation error:', error);
+      toast.error('Failed to create label', {
+        description: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   };
 
